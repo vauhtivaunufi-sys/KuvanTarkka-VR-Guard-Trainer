@@ -1,6 +1,6 @@
 # Git Workflow Guide for TaserTrainer VR Team
 
-**Team:** 4 people (1 Programmer, 2 Artists, 1 Sound Designer)
+**Team:** 4 people (1 Programmer, 3 Artists)
 
 ---
 
