@@ -1,0 +1,4 @@
+repository "KuvanTarkkaVR/KuvanTarkkaVR@5773396903920@cloud"
+  path "/"
+    br "/main"
+    co "/main"
