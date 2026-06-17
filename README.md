@@ -29,8 +29,6 @@ git checkout -b feature/npc-models
 # Artist 2 (UI)
 git checkout -b feature/ui
 
-# Sound Designer
-git checkout -b feature/audio
 ```
 
 ### **3. Work on Your Files**
@@ -116,7 +114,6 @@ main (always stable, ready to show)
 | **Programmer (Ivan)** | Assets/Scripts/ | feature/core-mechanics |
 | **Artist 1** | Assets/Models/ + Assets/Animations/ | feature/npc-models |
 | **Artist 2** | Assets/UI/ + Assets/Prefabs/ | feature/ui |
-| **Sound** | Assets/Audio/ | feature/audio |
 
 ---
 
@@ -260,15 +257,6 @@ git checkout -b feature/ui
 git add Assets/UI/
 git commit -m "Add objective and health UI layouts"
 git push origin feature/ui
-```
-
-### **Sound (Audio)**
-```bash
-git checkout -b feature/audio
-# Add audio files
-git add Assets/Audio/
-git commit -m "Add taser fire and impact sounds"
-git push origin feature/audio
 ```
 
 ---
