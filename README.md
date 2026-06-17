@@ -1,4 +1,4 @@
-# Git Workflow Guide for TaserTrainer VR Team
+# Git Workflow Guide for KuvanTarkka VR Team
 
 **Team:** 3 people (1 Programmer, 2 Artists)
 **Unity version** 6000.2.6f2
