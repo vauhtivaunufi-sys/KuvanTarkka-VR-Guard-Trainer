@@ -1,6 +1,7 @@
 # Git Workflow Guide for TaserTrainer VR Team
 
-**Team:** 4 people (1 Programmer, 3 Artists)
+**Team:** 3 people (1 Programmer, 2 Artists)
+**Unity version** 6000.2.6f2
 
 ---
 
