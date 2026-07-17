@@ -40,11 +40,11 @@ public class TaserWeapon : GrabbableWeapon
         {
             beamEnd = hit.point;
 
-            if (hit.collider.CompareTag("Prisoner") &&
-                hit.collider.TryGetComponent(out PrisonerStatusSystem prisoner))
-            {
+            // Search parents too so child colliders (e.g. on an artist's
+            // model) still register hits.
+            PrisonerStatusSystem prisoner = hit.collider.GetComponentInParent<PrisonerStatusSystem>();
+            if (prisoner != null)
                 prisoner.ApplyTaser();
-            }
         }
 
         ShowBeam(origin, beamEnd);

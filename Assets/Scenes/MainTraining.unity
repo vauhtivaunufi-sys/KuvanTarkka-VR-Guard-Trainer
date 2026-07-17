@@ -329,12 +329,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 756045114}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.023, y: 0, z: -0.889}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.41509008, y: 0, z: -3.73}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1334185305}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &903761400
 GameObject:
@@ -360,12 +360,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 903761400}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.6, y: 0, z: 0.91}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.99209, y: 0, z: -1.931}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1334185305}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &980106758
 GameObject:
@@ -509,7 +509,9 @@ Transform:
   m_LocalPosition: {x: 2.60791, y: 0, z: 2.841}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 903761401}
+  - {fileID: 756045115}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1380261119
@@ -538,7 +540,7 @@ ParticleSystem:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1380261119}
   serializedVersion: 8
-  lengthInSec: 0.5
+  lengthInSec: 1
   simulationSpeed: 1
   stopAction: 0
   cullingMode: 0
@@ -720,7 +722,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 1, b: 1, a: 1}
+      maxColor: {r: 0.6603774, g: 0.404041, b: 0.12335346, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -1101,9 +1103,9 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 1000
+    maxNumParticles: 5000
     customEmitterVelocity: {x: 0, y: 0, z: 0}
-    size3D: 0
+    size3D: 1
     rotation3D: 0
     gravityModifier:
       serializedVersion: 2
@@ -1162,10 +1164,10 @@ ParticleSystem:
     serializedVersion: 6
     enabled: 1
     type: 4
-    angle: 15
+    angle: 10.1
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
-    radiusThickness: 1
+    radiusThickness: 0
     donutRadius: 0.2
     m_Position: {x: 0, y: 0, z: 0}
     m_Rotation: {x: 0, y: 0, z: 0}
@@ -1248,7 +1250,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0
     radius:
-      value: 1
+      value: 0.0001
       mode: 0
       spread: 0
       speed:
@@ -1305,7 +1307,7 @@ ParticleSystem:
           m_PostInfinity: 2
           m_RotationOrder: 4
     arc:
-      value: 360
+      value: 335.74
       mode: 0
       spread: 0
       speed:
@@ -5363,6 +5365,8 @@ GameObject:
   - component: {fileID: 1392016873}
   - component: {fileID: 1392016875}
   - component: {fileID: 1392016874}
+  - component: {fileID: 1392016876}
+  - component: {fileID: 1392016877}
   m_Layer: 0
   m_Name: Prisoner
   m_TagString: Prisoner
@@ -5495,6 +5499,7 @@ MonoBehaviour:
   - {fileID: 903761401}
   - {fileID: 756045115}
   reachThreshold: 0.5
+  chaseRange: 6
 --- !u!195 &1392016875
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5517,6 +5522,34 @@ NavMeshAgent:
   m_BaseOffset: 1.0000001
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1392016876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392016866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0abdb836a6cd76488d6beda9a1a315d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PrisonerAttack
+  attackRange: 1.5
+  attackCooldown: 2
+--- !u!114 &1392016877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392016866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4006c0faa93efe84a8844160a1e8d7ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PrisonerStatusIndicator
+  heightAboveHead: 0.35
+  fontSize: 64
 --- !u!1 &1443043009
 GameObject:
   m_ObjectHideFlags: 0
@@ -6026,14 +6059,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1682932539}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.73432, y: 0.358, z: 0.82001}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 2.73432, y: 0.921, z: 0.242}
   m_LocalScale: {x: 0.06612691, y: 0.06612691, z: 0.06612691}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 279714169}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &1946998433
 GameObject:
   m_ObjectHideFlags: 0
@@ -6425,15 +6458,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1946998433}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.70756966, y: 0.10606187, z: -0.036060013, w: 0.6977076}
-  m_LocalPosition: {x: 1.2368, y: 0.358, z: 0.38787}
+  m_LocalRotation: {x: -0.71391696, y: 0.047185946, z: -0.093633585, w: 0.69233584}
+  m_LocalPosition: {x: 1.758, y: 1.03, z: 0.333}
   m_LocalScale: {x: 0.094703175, y: 0.094703175, z: 0.094703175}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 980106759}
   - {fileID: 2129486846}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -78.437, y: 96.821, z: -91.118}
+  m_LocalEulerAnglesHint: {x: -78.437, y: 96.821, z: -100.605}
 --- !u!1 &1956939674
 GameObject:
   m_ObjectHideFlags: 0
@@ -6506,6 +6539,4 @@ SceneRoots:
   - {fileID: 1392016872}
   - {fileID: 1946998441}
   - {fileID: 1334185305}
-  - {fileID: 903761401}
-  - {fileID: 756045115}
   - {fileID: 1682932546}

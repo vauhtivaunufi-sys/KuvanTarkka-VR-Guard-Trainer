@@ -38,11 +38,11 @@ public class OCSpray : GrabbableWeapon
             if (Vector3.Angle(usePoint.forward, toTarget) > halfAngle)
                 continue;
 
-            if (hit.CompareTag("Prisoner") &&
-                hit.TryGetComponent(out PrisonerStatusSystem prisoner))
-            {
+            // Search parents too so child colliders (e.g. on an artist's
+            // model) still register hits.
+            PrisonerStatusSystem prisoner = hit.GetComponentInParent<PrisonerStatusSystem>();
+            if (prisoner != null)
                 prisoner.ApplyOCSpray();
-            }
         }
     }
 
