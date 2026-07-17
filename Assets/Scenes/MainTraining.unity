@@ -481,6 +481,63 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 980106758}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1159390864
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -16.84
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.26015
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 94753def33062b642b43dc4bca13df83, type: 3}
+      propertyPath: m_Name
+      value: PrisonLevelDesign_Blockout
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 94753def33062b642b43dc4bca13df83, type: 3}
 --- !u!1 &1334185304
 GameObject:
   m_ObjectHideFlags: 0
@@ -5482,6 +5539,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PrisonerStatusSystem
   electrocutedDuration: 5
   inPainDuration: 8
+  scaredDuration: 20
 --- !u!114 &1392016874
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6540,3 +6598,4 @@ SceneRoots:
   - {fileID: 1946998441}
   - {fileID: 1334185305}
   - {fileID: 1682932546}
+  - {fileID: 1159390864}
