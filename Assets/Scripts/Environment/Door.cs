@@ -1,14 +1,13 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 
-/// Push/pull door that swings open on interaction. Works as a single door on
-/// its own, or as one leaf of a double door when paired with otherLeaf -
-/// interacting with either leaf then swings both open together.
-/// Adds its own collider automatically if the door model doesn't have one,
-/// since XRSimpleInteractable can't be interacted with otherwise.
+// Push/pull door that swings open on interaction. Works as a single door on
+// its own, or as one leaf of a double door when paired with otherLeaf - interacting with either leaf then swings both open together.
+// Adds its own collider automatically if the door model doesn't have one, since XRSimpleInteractable can't be interacted with otherwise.
 
 [RequireComponent(typeof(XRSimpleInteractable))]
 public class Door : MonoBehaviour
@@ -25,7 +24,15 @@ public class Door : MonoBehaviour
     [Tooltip("Second leaf of a double door, opened together with this one. Leave empty for a single door.")]
     [SerializeField] Door otherLeaf;
 
+    [Tooltip("Marks this as a prisoner cell door. Used by CellDoorLink to decide whether it should attach to this door.")]
+    [SerializeField] bool isCellDoor;
+
     public bool IsOpen { get; private set; }
+
+    public bool IsCellDoor => isCellDoor;
+
+   
+    public event Action OnDoorOpened;
 
     Quaternion closedRotation;
     Coroutine swingRoutine;
@@ -99,6 +106,9 @@ public class Door : MonoBehaviour
         }
 
         hinge.localRotation = to;
+
+        if (open)
+            OnDoorOpened?.Invoke();
     }
 
     // XRSimpleInteractable can only be interacted with through a collider; the

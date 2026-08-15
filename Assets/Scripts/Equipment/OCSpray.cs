@@ -1,8 +1,7 @@
 using UnityEngine;
 
 
-/// OC spray implementation: affects prisoners inside a short cone
-/// in front of the use point, with particle and sound effects.
+// OC spray implementation: affects prisoners inside a short cone in front of the use point, with particle and sound effects.
 
 public class OCSpray : GrabbableWeapon
 {
@@ -63,8 +62,8 @@ public class OCSpray : GrabbableWeapon
             audioSource.PlayOneShot(sprayClip);
     }
 
-    /// Draws the spray cone in the Scene view while the object is selected,
-    /// so the reach and aim direction can be checked without playing.
+    // Draws the spray cone in the Scene view while the object is selected
+    
     void OnDrawGizmosSelected()
     {
         if (usePoint == null)

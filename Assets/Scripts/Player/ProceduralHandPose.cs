@@ -2,10 +2,10 @@ using System;
 using UnityEngine;
 using UnityEngine.XR;
 
-/// Curls a rigged hand mesh's finger joints from the physical controller's grip/trigger axes.
-/// Joints are located by name at startup (expects the "XRHand_<Finger><Joint>" naming used by
-/// the OpenXR/Meta hand rigs, e.g. XRHand_IndexProximal), so no per-bone wiring is needed in the
-/// Inspector - just drop this on the hand rig's root and set which controller it mirrors.
+//Curls a rigged hand mesh's finger joints from the physical controller's grip/trigger axes.
+// Joints are located by name at startup (expects the "XRHand_<Finger><Joint>" naming used by
+// the OpenXR/Meta hand rigs, e.g. XRHand_IndexProximal), so no per-bone wiring is needed in the
+// Inspector - just drop this on the hand rig's root and set which controller it mirrors.
 public class ProceduralHandPose : MonoBehaviour
 {
     [Tooltip("Which physical controller this hand mirrors.")]

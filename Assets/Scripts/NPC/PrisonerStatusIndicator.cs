@@ -1,11 +1,8 @@
 using UnityEngine;
 
 
-/// Floating two-line label above the prisoner's head so the trainee can
-/// see at a glance both the NPC's condition (calm, electrocuted, ...) and
-/// what it is doing (patrolling or chasing). Creates its own TextMesh at
-/// runtime and always faces the player camera. Can later be replaced with
-/// proper UI — read the same PrisonerStatusSystem / PrisonerAIMovement state.
+// Floating two-line label above the prisoner's head so the trainee can see at a glance both the NPC's condition (calm, electrocuted, ...) and
+// what it is doing (patrolling or chasing). Creates its own TextMesh at  runtime and always faces the player camera. Can later be replaced wit proper UI — read the same PrisonerStatusSystem / PrisonerAIMovement state.
 
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerStatusIndicator : MonoBehaviour

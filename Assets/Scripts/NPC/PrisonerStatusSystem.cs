@@ -19,10 +19,8 @@ public enum PrisonerEmotional
 }
 
 
-/// Tracks the prisoner's current conditional status and its reactions to
-/// equipment effects. Temporary effects wear off after their duration;
-/// Detained is permanent. Also tracks the emotional status, which other
-/// systems (e.g. attack behaviour) read and set.
+// Tracks the prisoner's current conditional status and its reactions to equipment effects. Temporary effects wear off after their duration;
+// Detained is permanent. Also tracks the emotional status, which other systems (e.g. attack behaviour) read and set.
 
 public class PrisonerStatusSystem : MonoBehaviour
 {
@@ -35,10 +33,10 @@ public class PrisonerStatusSystem : MonoBehaviour
     [Tooltip("How long the prisoner stays scared (won't chase or attack) after an effect wears off, in seconds. 0 = never gets scared.")]
     [SerializeField] float scaredDuration = 20f;
 
-    /// Raised whenever the conditional status changes.
+    // Raised whenever the conditional status changes.
     public event Action<PrisonerConditional> OnConditionalStatusChanged;
 
-    /// Raised whenever the emotional status changes.
+    // Raised whenever the emotional status changes.
     public event Action<PrisonerEmotional> OnEmotionalStatusChanged;
 
     public PrisonerConditional CurrentConditional { get; private set; } = PrisonerConditional.Idle;
@@ -58,7 +56,7 @@ public class PrisonerStatusSystem : MonoBehaviour
         ApplyTemporaryEffect(PrisonerConditional.InPain, inPainDuration);
     }
 
-    /// Permanently detains the prisoner (training objective completed).
+    // Permanently detains the prisoner (training objective completed).
     public void Detain()
     {
         if (CurrentConditional == PrisonerConditional.Detained)

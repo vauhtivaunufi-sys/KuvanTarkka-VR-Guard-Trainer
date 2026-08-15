@@ -2,8 +2,8 @@ using System.Collections;
 using UnityEngine;
 
 
-/// Taser implementation: raycasts from the use point and
-/// applies the taser effect to prisoners, showing a short visual beam.
+// Taser implementation: raycasts from the use point and
+// applies the taser effect to prisoners, showing a short visual beam.
 
 public class TaserWeapon : GrabbableWeapon
 {

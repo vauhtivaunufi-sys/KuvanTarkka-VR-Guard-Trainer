@@ -3,10 +3,8 @@ using UnityEngine;
 using UnityEngine.AI;
 
 
-/// Melee attack behaviour for prisoner NPCs (M11): attacks the player when
-/// close enough, unless under an equipment effect, detained or scared.
-/// Stops the NavMeshAgent while the player is within attack range so the
-/// attack does not fight with patrol movement.
+// Melee attack behaviour for prisoner NPCs (M11): attacks the player when close enough, unless under an equipment effect, detained or scared.
+// Stops the NavMeshAgent while the player is within attack range so the attack does not fight with patrol movement.
 
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerAttack : MonoBehaviour
@@ -17,7 +15,7 @@ public class PrisonerAttack : MonoBehaviour
     [Tooltip("Minimum time between attacks, in seconds.")]
     [SerializeField] float attackCooldown = 2f;
 
-    /// Raised every time the prisoner performs an attack.
+    // Raised every time the prisoner performs an attack.
     public event Action OnAttack;
 
     PrisonerStatusSystem status;

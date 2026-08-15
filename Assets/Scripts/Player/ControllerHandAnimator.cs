@@ -2,8 +2,7 @@ using UnityEngine;
 using UnityEngine.XR;
 
 
-/// Drives a hand model's Animator from the physical controller's grip/trigger axes,
-/// so squeezing a button visibly curls the corresponding fingers.
+// Drives a hand model's Animator from the physical controller's grip/trigger axes, so squeezing a button visibly curls the corresponding fingers.
 
 public class ControllerHandAnimator : MonoBehaviour
 {

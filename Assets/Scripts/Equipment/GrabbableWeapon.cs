@@ -3,9 +3,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 
-/// Base class for all handheld equipment (OC Spray, Taser, Shield).
-/// Listens to the XRGrabInteractable activate action (trigger press while held)
-/// and calls <see cref="OnUse"/> when the cooldown allows it.
+// Base class for all handheld equipment (OC Spray, Taser, Shield).
+// Listens to the XRGrabInteractable activate action (trigger press while held) and calls <see cref="OnUse"/> when the cooldown allows it.
 
 [RequireComponent(typeof(XRGrabInteractable))]
 public abstract class GrabbableWeapon : MonoBehaviour
@@ -43,6 +42,6 @@ public abstract class GrabbableWeapon : MonoBehaviour
         OnUse();
     }
 
-    /// Weapon-specific behaviour, executed once per allowed trigger press.
+    // Weapon-specific behaviour, executed once per allowed trigger press.
     protected abstract void OnUse();
 }

@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-/// Shield implementation: passive protection toggled on and off while held,
-/// unlike the one-shot Taser/OC Spray actions. While raised, blocks attacks
-/// from prisoners in front of it and shoves non-aggressive prisoners the
-/// player walks the shield into.
+// Shield implementation: passive protection toggled on and off while held, unlike the one-shot Taser/OC Spray actions. While raised, blocks attacks from prisoners in front of it and shoves non-aggressive prisoners the player walks the shield into.
 
 [RequireComponent(typeof(Rigidbody))]
 public class ShieldEquipment : GrabbableWeapon
@@ -116,8 +113,7 @@ public class ShieldEquipment : GrabbableWeapon
         prisonerBody.AddForce(pushDirection * currentVelocity.magnitude * pushForcePerSpeed, ForceMode.Force);
     }
 
-    /// Push only affects prisoners that are not currently aggressive: an
-    /// attacking prisoner should be blocked, not shoved aside.
+    // Push only affects prisoners that are not currently aggressive: an attacking prisoner should be blocked, not shoved aside.
     bool ShouldPush(PrisonerStatusSystem status)
     {
         return status.CurrentEmotional == PrisonerEmotional.Scared ||

@@ -2,10 +2,8 @@ using UnityEngine;
 using UnityEngine.AI;
 
 
-/// Patrol and chase movement for prisoner NPCs: walks between patrol
-/// points while idle, chases the player when close enough, freezes while
-/// under an equipment effect and stops permanently once detained.
-/// Scared prisoners never chase.
+// Patrol and chase movement for prisoner NPCs: walks between patrol points while idle, chases the player when close enough, freezes while under an equipment effect and stops permanently once detained.
+// Scared prisoners never chase.
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(PrisonerStatusSystem))]
@@ -20,8 +18,11 @@ public class PrisonerAIMovement : MonoBehaviour
     [Tooltip("Horizontal distance at which the prisoner notices the player and starts chasing, in meters. Set to 0 to disable chasing.")]
     [SerializeField] float chaseRange = 6f;
 
-    /// True while the prisoner is actively chasing the player.
+    // True while the prisoner is actively chasing the player.
     public bool IsChasing { get; private set; }
+
+    // True once Activate() has been called - false means the prisoner is still asleep (agent disabled, no patrolling).
+    public bool IsActive { get; private set; }
 
     NavMeshAgent agent;
     PrisonerStatusSystem status;
@@ -32,6 +33,9 @@ public class PrisonerAIMovement : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         status = GetComponent<PrisonerStatusSystem>();
+        // Starts asleep: disabled until Activate() is called, e.g. by
+        // CellDoorLink when this prisoner's cell door opens.
+        agent.enabled = false;
     }
 
     void OnEnable()
@@ -46,12 +50,25 @@ public class PrisonerAIMovement : MonoBehaviour
 
     void Start()
     {
+        if (IsActive)
+            MoveToNextPoint();
+    }
+
+    // Wakes the prisoner: enables the NavMeshAgent and starts patrolling.
+    // Safe to call more than once.
+    public void Activate()
+    {
+        if (IsActive)
+            return;
+
+        IsActive = true;
+        agent.enabled = true;
         MoveToNextPoint();
     }
 
     void Update()
     {
-        if (agent.isStopped)
+        if (!IsActive || agent.isStopped)
             return;
 
         if (ShouldChasePlayer())
