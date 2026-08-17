@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 
 // Shield implementation: passive protection toggled on and off while held, unlike the one-shot Taser/OC Spray actions. While raised, blocks attacks from prisoners in front of it and shoves non-aggressive prisoners the player walks the shield into.
@@ -17,8 +18,8 @@ public class ShieldEquipment : GrabbableWeapon
     [Tooltip("Angle from the shield's forward direction, in degrees, within which an attack still counts as blocked.")]
     [SerializeField] float blockAngle = 60f;
 
-    [Tooltip("Force applied per m/s of shield movement speed when pushing a prisoner.")]
-    [SerializeField] float pushForcePerSpeed = 20f;
+    [Tooltip("How fast a prisoner is shoved, as a multiplier of the shield's own movement speed.")]
+    [SerializeField] float pushSpeedMultiplier = 1.5f;
 
     class TrackedPrisoner
     {
@@ -98,19 +99,26 @@ public class ShieldEquipment : GrabbableWeapon
     // physical shape, separate from the blockZone trigger above.
     void OnCollisionStay(Collision collision)
     {
-        Rigidbody prisonerBody = collision.rigidbody;
-        if (prisonerBody == null)
-            return;
-
         PrisonerStatusSystem status = collision.collider.GetComponentInParent<PrisonerStatusSystem>();
         if (status == null || !ShouldPush(status))
             return;
 
-        Vector3 pushDirection = prisonerBody.position - rb.position;
-        pushDirection.y = 0f;
-        pushDirection.Normalize();
+        // Move the NavMeshAgent instead of pushing the Rigidbody: the agent
+        // owns the transform and cancels physics forces, and Move keeps the
+        // prisoner on the NavMesh instead of shoving it through walls.
+        NavMeshAgent agent = status.GetComponent<NavMeshAgent>();
+        if (agent == null || !agent.enabled || !agent.isOnNavMesh)
+            return;
 
-        prisonerBody.AddForce(pushDirection * currentVelocity.magnitude * pushForcePerSpeed, ForceMode.Force);
+        // Push along the direction the shield is moving, not outwards from
+        // its center - so the prisoner can be steered sideways too, not only
+        // straight away from the player.
+        Vector3 push = currentVelocity;
+        push.y = 0f;
+        if (push.sqrMagnitude < 0.0001f)
+            return;
+
+        agent.Move(push * pushSpeedMultiplier * Time.fixedDeltaTime);
     }
 
     // Push only affects prisoners that are not currently aggressive: an attacking prisoner should be blocked, not shoved aside.

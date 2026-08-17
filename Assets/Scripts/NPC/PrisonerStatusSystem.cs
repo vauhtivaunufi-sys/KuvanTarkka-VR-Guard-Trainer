@@ -43,6 +43,11 @@ public class PrisonerStatusSystem : MonoBehaviour
 
     public PrisonerEmotional CurrentEmotional { get; private set; } = PrisonerEmotional.Neutral;
 
+    // Effect durations, exposed so other systems (e.g. animation) can sync to the effect timeline.
+    public float ElectrocutedDuration => electrocutedDuration;
+
+    public float InPainDuration => inPainDuration;
+
     Coroutine recoverRoutine;
     Coroutine calmDownRoutine;
 

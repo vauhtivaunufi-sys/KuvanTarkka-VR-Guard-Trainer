@@ -18,6 +18,12 @@ public class PrisonerAIMovement : MonoBehaviour
     [Tooltip("Horizontal distance at which the prisoner notices the player and starts chasing, in meters. Set to 0 to disable chasing.")]
     [SerializeField] float chaseRange = 6f;
 
+    [Tooltip("Agent speed while patrolling, in m/s. Overrides the NavMeshAgent's Speed field.")]
+    [SerializeField] float patrolSpeed = 1.2f;
+
+    [Tooltip("Agent speed while chasing the player, in m/s.")]
+    [SerializeField] float chaseSpeed = 3f;
+
     // True while the prisoner is actively chasing the player.
     public bool IsChasing { get; private set; }
 
@@ -74,6 +80,7 @@ public class PrisonerAIMovement : MonoBehaviour
         if (ShouldChasePlayer())
         {
             IsChasing = true;
+            agent.speed = chaseSpeed;
             agent.SetDestination(playerTarget.position);
             return;
         }
@@ -84,6 +91,8 @@ public class PrisonerAIMovement : MonoBehaviour
             IsChasing = false;
             ResumePatrol();
         }
+
+        agent.speed = patrolSpeed;
 
         if (agent.pathPending || !agent.hasPath)
             return;
