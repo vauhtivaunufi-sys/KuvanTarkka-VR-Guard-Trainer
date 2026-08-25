@@ -189,7 +189,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrisonerAttack
   attackRange: 1.5
-  attackCooldown: 2
+  attackCooldown: 3
+  attackDuration: 2.4
 --- !u!114 &4432293472306316263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -246,7 +247,6 @@ MonoBehaviour:
   animator: {fileID: 5581152255235476583}
   crossFadeDuration: 0.2
   movingSpeedThreshold: 0.1
-  attackDuration: 2.4
   tasedLieTime: 3.5
   tasedGetUpTime: 3
   tasedClipLength: 12.4

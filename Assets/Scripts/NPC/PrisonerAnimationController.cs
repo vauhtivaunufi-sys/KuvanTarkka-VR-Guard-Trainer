@@ -24,9 +24,6 @@ public class PrisonerAnimationController : MonoBehaviour
     [Tooltip("Movement speed the chase clip is authored for, in m/s.")]
     [SerializeField] float chaseAnimationSpeed = 3f;
 
-    [Tooltip("How long the attack animation owns the body before locomotion takes over again, in seconds. Match to the attack clip length.")]
-    [SerializeField] float attackDuration = 2.4f;
-
     [Tooltip("Seconds into the Tased clip at which the prisoner has fallen and lies still - playback pauses there.")]
     [SerializeField] float tasedLieTime = 3.5f;
 
@@ -42,7 +39,6 @@ public class PrisonerAnimationController : MonoBehaviour
     PrisonerAIMovement movement;
     PrisonerAttack attack;
     NavMeshAgent agent;
-    float attackEndTime = float.NegativeInfinity;
     float effectEndTime;
     float tasedStartTime;
     float tasedSpeed = 1f;
@@ -151,8 +147,6 @@ public class PrisonerAnimationController : MonoBehaviour
 
     void HandleAttack()
     {
-        attackEndTime = Time.time + attackDuration;
-
         if (animator == null)
             return;
 
@@ -173,7 +167,9 @@ public class PrisonerAnimationController : MonoBehaviour
                 return "Sprayed";
         }
 
-        if (Time.time < attackEndTime)
+        // PrisonerAttack owns the swing window: it roots the agent for exactly
+        // as long as the Attack state holds the body, so the two cannot drift apart.
+        if (attack != null && attack.IsAttacking)
             return "Attack";
 
         float speed = agent != null && agent.enabled ? agent.velocity.magnitude : 0f;
