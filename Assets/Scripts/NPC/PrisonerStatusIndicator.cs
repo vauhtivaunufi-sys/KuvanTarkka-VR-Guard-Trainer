@@ -1,8 +1,9 @@
 using UnityEngine;
 
 
-// Floating two-line label above the prisoner's head so the trainee can see at a glance both the NPC's condition (calm, electrocuted, ...) and
-// what it is doing (patrolling or chasing). Creates its own TextMesh at  runtime and always faces the player camera. Can later be replaced wit proper UI — read the same PrisonerStatusSystem / PrisonerAIMovement state.
+// DEBUG label above the prisoner's head: his condition (calm, electrocuted, ...) and what he is doing (patrolling, chasing, and
+// whether he currently sees the player). Hidden together with every other debug aid by one switch - Tools > KuvanTarkka >
+// Debug Overlays in the editor, or holding the left menu button in the headset (see TrainingDebug).
 
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerStatusIndicator : MonoBehaviour
@@ -15,6 +16,7 @@ public class PrisonerStatusIndicator : MonoBehaviour
 
     PrisonerStatusSystem status;
     PrisonerAIMovement movement;
+    PrisonerPerception perception;
     Collider bodyCollider;
     TextMesh label;
     string lastText;
@@ -23,8 +25,26 @@ public class PrisonerStatusIndicator : MonoBehaviour
     {
         status = GetComponent<PrisonerStatusSystem>();
         movement = GetComponent<PrisonerAIMovement>();
+        perception = GetComponent<PrisonerPerception>();
         bodyCollider = GetComponent<Collider>();
         CreateLabel();
+    }
+
+    void OnEnable()
+    {
+        TrainingDebug.Changed += HandleDebugChanged;
+        HandleDebugChanged(TrainingDebug.Enabled);
+    }
+
+    void OnDisable()
+    {
+        TrainingDebug.Changed -= HandleDebugChanged;
+    }
+
+    void HandleDebugChanged(bool show)
+    {
+        if (label != null)
+            label.gameObject.SetActive(show);
     }
 
     void OnDestroy()
@@ -35,17 +55,15 @@ public class PrisonerStatusIndicator : MonoBehaviour
 
     void LateUpdate()
     {
-        if (label == null)
+        if (label == null || !TrainingDebug.Enabled)
             return;
 
         label.transform.position = GetLabelPosition();
 
-        Camera mainCamera = Camera.main;
-        if (mainCamera != null)
+        if (PlayerRig.TryGetHead(out Transform head))
         {
             // Face the camera (TextMesh is readable when looking along +Z).
-            label.transform.rotation =
-                Quaternion.LookRotation(label.transform.position - mainCamera.transform.position);
+            label.transform.rotation = Quaternion.LookRotation(label.transform.position - head.position);
         }
 
         UpdateText();
@@ -113,8 +131,14 @@ public class PrisonerStatusIndicator : MonoBehaviour
             status.CurrentConditional != PrisonerConditional.Idle)
             return null;
 
-        return movement.IsChasing
+        if (!movement.IsActive)
+            return "<color=grey>IN CELL</color>";
+
+        string line = movement.IsChasing
             ? "<color=red>CHASING</color>"
             : "<color=grey>PATROLLING</color>";
+        if (perception != null && perception.CanSeePlayer)
+            line += " <color=red>(sees you)</color>";
+        return line;
     }
 }

@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEngine.AI;
 
 
-// Patrol and chase movement for prisoner NPCs: walks between patrol points while idle, chases the player when close enough, freezes while under an equipment effect and stops permanently once detained.
+// Patrol and chase movement for prisoner NPCs: walks between patrol points while idle, chases the player he can actually see
+// (PrisonerPerception: view cone + line of sight, so no more chasing through walls), searches the last known position for a few
+// seconds after losing sight, freezes while under an equipment effect and stops permanently once detained.
 // Scared prisoners never chase.
 
 [RequireComponent(typeof(NavMeshAgent))]
@@ -32,13 +34,15 @@ public class PrisonerAIMovement : MonoBehaviour
 
     NavMeshAgent agent;
     PrisonerStatusSystem status;
-    Transform playerTarget;
+    PrisonerPerception perception;
+    Vector3 chaseDestination;
     int currentPointIndex = -1;
 
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         status = GetComponent<PrisonerStatusSystem>();
+        perception = PrisonerPerception.GetOrAdd(gameObject);
         // Starts asleep: disabled until Activate() is called, e.g. by
         // CellDoorLink when this prisoner's cell door opens.
         agent.enabled = false;
@@ -81,7 +85,7 @@ public class PrisonerAIMovement : MonoBehaviour
         {
             IsChasing = true;
             agent.speed = chaseSpeed;
-            agent.SetDestination(playerTarget.position);
+            agent.SetDestination(chaseDestination);
             return;
         }
 
@@ -106,18 +110,35 @@ public class PrisonerAIMovement : MonoBehaviour
         if (chaseRange <= 0f || status.CurrentEmotional == PrisonerEmotional.Scared)
             return false;
 
-        if (playerTarget == null)
+        PlayerRig rig = PlayerRig.Instance;
+        if (rig == null)
+            return false;
+
+        if (perception == null)
         {
-            // The XR Origin's head camera is tagged MainCamera by default.
-            Camera mainCamera = Camera.main;
-            if (mainCamera == null)
-                return false;
-            playerTarget = mainCamera.transform;
+            // No perception component: old behaviour (distance only). Add PrisonerPerception to stop him sensing through walls.
+            Vector3 offset = rig.FeetPosition - transform.position;
+            offset.y = 0f;
+            chaseDestination = rig.FeetPosition;
+            return offset.magnitude <= chaseRange;
         }
 
-        Vector3 offset = playerTarget.position - transform.position;
-        offset.y = 0f;
-        return offset.magnitude <= chaseRange;
+        if (perception.CanSeePlayer && perception.DistanceToPlayer <= chaseRange)
+        {
+            chaseDestination = rig.FeetPosition;
+            return true;
+        }
+
+        // Lost sight mid-chase: keep going to where the player was last seen (or heard) until memory runs out or he gets there.
+        if (IsChasing && perception.IsAware)
+        {
+            chaseDestination = perception.LastKnownPlayerPosition;
+            Vector3 toTarget = chaseDestination - transform.position;
+            toTarget.y = 0f;
+            return toTarget.magnitude > reachThreshold;
+        }
+
+        return false;
     }
 
     void MoveToNextPoint()

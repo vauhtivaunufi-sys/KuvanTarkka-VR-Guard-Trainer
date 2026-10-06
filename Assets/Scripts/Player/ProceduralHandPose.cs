@@ -2,7 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.XR;
 
-//Curls a rigged hand mesh's finger joints from the physical controller's grip/trigger axes.
+// Curls a rigged hand mesh's finger joints from the controller's grip/trigger axes (read through ControllerInput, so the editor's
+// desktop test tool can drive it too).
 // Joints are located by name at startup (expects the "XRHand_<Finger><Joint>" naming used by
 // the OpenXR/Meta hand rigs, e.g. XRHand_IndexProximal), so no per-bone wiring is needed in the
 // Inspector - just drop this on the hand rig's root and set which controller it mirrors.
@@ -44,7 +45,6 @@ public class ProceduralHandPose : MonoBehaviour
     Joint[] littleJoints;
     Joint[] thumbJoints;
 
-    InputDevice device;
     float grip;
     float trigger;
 
@@ -57,23 +57,11 @@ public class ProceduralHandPose : MonoBehaviour
         thumbJoints = FindFinger("Thumb");
     }
 
-    void OnEnable()
-    {
-        device = InputDevices.GetDeviceAtXRNode(controllerNode);
-    }
-
     void Update()
     {
-        if (!device.isValid)
-            device = InputDevices.GetDeviceAtXRNode(controllerNode);
-
-        float targetGrip = grip;
-        float targetTrigger = trigger;
-        if (device.isValid)
-        {
-            device.TryGetFeatureValue(CommonUsages.grip, out targetGrip);
-            device.TryGetFeatureValue(CommonUsages.trigger, out targetTrigger);
-        }
+        Hand hand = controllerNode == XRNode.LeftHand ? Hand.Left : Hand.Right;
+        float targetGrip = ControllerInput.GetAxis(hand, ControllerAxis.Grip);
+        float targetTrigger = ControllerInput.GetAxis(hand, ControllerAxis.Trigger);
 
         float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
         grip = Mathf.Lerp(grip, targetGrip, t);

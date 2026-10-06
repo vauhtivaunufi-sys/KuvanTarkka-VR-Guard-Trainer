@@ -5,6 +5,37 @@
 
 ---
 
+## Testing Without a Headset (editor only)
+
+**The game is VR only.** Keyboard & mouse exists only so the team can test game logic in the Unity editor without a headset.
+It is not compiled into builds, is not shown to the customer, and does not decide how anything works in VR.
+Aim, reach and feel are not VR-accurate here - final checks are always done in the headset.
+
+1. Open the project in Unity, open `Assets/Scenes/MainTraining.unity`, press **Play**.
+2. No headset connected = the keyboard & mouse test tool starts automatically. Click the Game view to capture the mouse.
+
+| Key | Stands in for | Action |
+|-----|---------------|--------|
+| Mouse | Head | Look |
+| W A S D | Left stick | Walk (Left Shift = faster) |
+| E | Right grip | Right hand: pick up / drop, open doors |
+| Q | Left grip | Left hand: pick up / drop |
+| Left mouse | Right trigger | Use item in right hand (taser, spray) |
+| Right mouse | Left trigger | Use item in left hand (shield up / down) |
+| R / T | A / B | Right controller buttons |
+| F / G | X / Y | Left controller buttons |
+| Tab | Left menu | Left menu button |
+| F1 | - | Show / hide controls on screen |
+| F3 | - | Debug overlays on / off |
+| Esc | - | Free the mouse (click the Game view to continue) |
+
+**Game freezes on the first frame / nothing reacts?** In the Console window, turn **Error Pause** OFF. Without a headset the Meta XR plugin logs a "no headset" error at start, and Error Pause stops the game on it.
+
+Headset plugged in but you still want keyboard & mouse? **Tools > KuvanTarkka > Desktop Testing (editor only) > Keyboard and Mouse** (saved only on your computer).
+Code: `Assets/Scripts/DevTools/DesktopTesting/`. Game code must never reference it.
+
+---
+
 ## Quick Start
 
 ### **1. Clone the Repository**
@@ -262,11 +293,6 @@ git push origin feature/ui
 
 ---
 
-## Questions?
-
-Ask the Programmer (Ivan) if you're unsure about Git commands.
-
----
 
 ## Useful GitHub Features
 

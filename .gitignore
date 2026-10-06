@@ -17,8 +17,16 @@ Builds/
 *.user
 *.unitypackage
 .vscode/
+.vs/
+.claude/
 .idea/
 
 # OS
 Thumbs.db
 .DS_Store
+# Unity temp / leftover VCS
+.utmp/
+.plastic/
+MemoryCaptures/
+Assets/_Recovery/
+Assets/_Recovery.meta

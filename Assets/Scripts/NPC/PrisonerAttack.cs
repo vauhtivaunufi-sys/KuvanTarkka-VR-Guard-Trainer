@@ -4,6 +4,8 @@ using UnityEngine.AI;
 
 
 // Melee attack behaviour for prisoner NPCs (M11): attacks the player when close enough, unless under an equipment effect, detained or scared.
+// Only once he is out of his cell (PrisonerAIMovement.IsActive) and only at a player he can actually see (PrisonerPerception) - so no
+// more swings from inside a closed cell or through a door.
 // Stops the NavMeshAgent while the player is within attack range so the attack does not fight with patrol movement, and keeps it stopped
 // until the swing has played out - otherwise backing out of range mid-swing hands the agent straight back to the chase and the prisoner
 // glides after the player in his attack pose, with no walk cycle under him.
@@ -28,14 +30,17 @@ public class PrisonerAttack : MonoBehaviour
     public bool IsAttacking => Time.time < attackEndTime;
 
     PrisonerStatusSystem status;
+    PrisonerAIMovement movement;
+    PrisonerPerception perception;
     NavMeshAgent agent;
-    Transform playerTarget;
     float lastAttackTime = float.NegativeInfinity;
     float attackEndTime = float.NegativeInfinity;
 
     void Awake()
     {
         status = GetComponent<PrisonerStatusSystem>();
+        movement = GetComponent<PrisonerAIMovement>();
+        perception = PrisonerPerception.GetOrAdd(gameObject);
         agent = GetComponent<NavMeshAgent>();
     }
 
@@ -51,17 +56,16 @@ public class PrisonerAttack : MonoBehaviour
             return;
         }
 
-        if (playerTarget == null)
-        {
-            Camera mainCamera = Camera.main;
-            if (mainCamera == null)
-                return;
-            // The XR Origin's head camera is tagged MainCamera by default.
-            playerTarget = mainCamera.transform;
-        }
+        // TODO(Ivan) - bug 11: the prisoner attacks from inside his closed cell while still "asleep".
+        // Stop here when he is not active yet (hint: the 'movement' field above, PrisonerAIMovement.IsActive).
+        // Think about what else must be reset so no half-finished attack state survives until he wakes up.
 
-        // Scared prisoners never attack and keep patrolling instead.
-        bool inRange = status.CurrentEmotional != PrisonerEmotional.Scared &&
+        if (PlayerRig.Instance == null)
+            return;
+
+        // Scared prisoners never attack and keep patrolling instead. A player he can't see (wall, closed door) can't be hit.
+        bool canSee = perception == null || perception.CanSeePlayer;
+        bool inRange = status.CurrentEmotional != PrisonerEmotional.Scared && canSee &&
                        HorizontalDistanceToPlayer() <= attackRange;
 
         if (agent != null && agent.isOnNavMesh)
@@ -86,9 +90,8 @@ public class PrisonerAttack : MonoBehaviour
 
     float HorizontalDistanceToPlayer()
     {
-        // Ignore height: the target is the player's head camera (~1.7 m up),
-        // so a 3D distance would never drop below a 1.5 m attack range.
-        Vector3 offset = playerTarget.position - transform.position;
+        // Horizontal only: the player's head is ~1.7 m up, so a 3D distance would never drop below a 1.5 m attack range.
+        Vector3 offset = PlayerRig.Instance.FeetPosition - transform.position;
         offset.y = 0f;
         return offset.magnitude;
     }
