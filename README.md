@@ -41,8 +41,8 @@ Code: `Assets/Scripts/DevTools/DesktopTesting/`. Game code must never reference 
 ### **1. Clone the Repository**
 
 ```bash
-git clone https://github.com/Kyberturvallisuus-ja-peliteknologiat/Kuvantarkka.git
-cd Kuvantarkka
+git clone https://github.com/vauhtivaunufi-sys/KuvanTarkka-VR-Guard-Trainer.git
+cd KuvanTarkka-VR-Guard-Trainer
 ```
 
 ### **2. Create Your Branch (DO THIS FIRST)**
@@ -113,7 +113,7 @@ git push origin feature/your-branch
 
 Go to GitHub:
 ```
-https://github.com/Kyberturvallisuus-ja-peliteknologiat/Kuvantarkka
+https://github.com/vauhtivaunufi-sys/KuvanTarkka-VR-Guard-Trainer
 ├─ Pull Requests tab
 ├─ New Pull Request
 ├─ From: feature/your-branch
