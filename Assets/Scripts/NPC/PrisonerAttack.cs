@@ -4,8 +4,7 @@ using UnityEngine.AI;
 
 
 // Melee attack behaviour for prisoner NPCs (M11): attacks the player when close enough, unless under an equipment effect, detained or scared.
-// Only once he is out of his cell (PrisonerAIMovement.IsActive) and only at a player he can actually see (PrisonerPerception) - so no
-// more swings from inside a closed cell or through a door.
+// Only once he is out of his cell (PrisonerAIMovement.IsActive) and only at a player he can actually see (PrisonerPerception) - so no more swings from inside a closed cell or through a door.
 // Stops the NavMeshAgent while the player is within attack range so the attack does not fight with patrol movement, and keeps it stopped
 // until the swing has played out - otherwise backing out of range mid-swing hands the agent straight back to the chase and the prisoner
 // glides after the player in his attack pose, with no walk cycle under him.
@@ -22,11 +21,10 @@ public class PrisonerAttack : MonoBehaviour
     [Tooltip("How long a swing roots the prisoner in place, in seconds. Match to the attack clip length.")]
     [SerializeField] float attackDuration = 2.4f;
 
-    // Raised every time the prisoner performs an attack.
+    // Raised every time the prisoner performs an attack
     public event Action OnAttack;
 
-    // True while a swing is still playing out. PrisonerAnimationController
-    // holds the Attack animation state for exactly as long as this is true.
+    // True while a swing is still playing out. PrisonerAnimationController holds the Attack animation state for exactly as long as this is true.
     public bool IsAttacking => Time.time < attackEndTime;
 
     PrisonerStatusSystem status;
@@ -46,19 +44,20 @@ public class PrisonerAttack : MonoBehaviour
 
     void Update()
     {
-        // While electrocuted, in pain or detained, PrisonerAIMovement owns
-        // agent.isStopped; touch nothing so the two scripts don't conflict.
+        // While electrocuted, in pain or detained, PrisonerAIMovement owns agent.isStopped; touch nothing so the two scripts don't conflict.
         if (status.CurrentConditional != PrisonerConditional.Idle)
         {
-            // Getting tased or sprayed cancels the swing. Clear the root too,
-            // or it outlives the interrupt and leaves him planted once he recovers.
+            // Getting tased or sprayed cancels the swing
             attackEndTime = float.NegativeInfinity;
             return;
         }
 
-        // TODO(Ivan) - bug 11: the prisoner attacks from inside his closed cell while still "asleep".
-        // Stop here when he is not active yet (hint: the 'movement' field above, PrisonerAIMovement.IsActive).
-        // Think about what else must be reset so no half-finished attack state survives until he wakes up.
+        // Still asleep in his cell: no attacks, and clear any half-finished swing
+        if (movement != null && !movement.IsActive)
+        {
+            attackEndTime = float.NegativeInfinity;
+            return;
+        }
 
         if (PlayerRig.Instance == null)
             return;
@@ -80,8 +79,7 @@ public class PrisonerAttack : MonoBehaviour
         lastAttackTime = Time.time;
         attackEndTime = Time.time + attackDuration;
 
-        // isStopped only cuts the agent's throttle, it does not clear momentum;
-        // without this he coasts on into the first half of the swing.
+        // isStopped only cuts the agent's throttle, it does not clear momentum
         if (agent != null && agent.isOnNavMesh)
             agent.velocity = Vector3.zero;
 
@@ -90,7 +88,7 @@ public class PrisonerAttack : MonoBehaviour
 
     float HorizontalDistanceToPlayer()
     {
-        // Horizontal only: the player's head is ~1.7 m up, so a 3D distance would never drop below a 1.5 m attack range.
+        // Horizontal only: the player's head is ~1.7 m up, so a 3D distance would never drop below a 1.5 m attack range
         Vector3 offset = PlayerRig.Instance.FeetPosition - transform.position;
         offset.y = 0f;
         return offset.magnitude;

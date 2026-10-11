@@ -10,7 +10,7 @@ public class RestraintZone : MonoBehaviour
     [Tooltip("Placeholder visual marking the zone on the floor - a colored quad or outline until art replaces it.")]
     [SerializeField] GameObject visualMarker;
 
-    // Raised whenever a prisoner is detained by this zone.
+    // Raised whenever a prisoner is detained by this zone
     public event Action OnPrisonerDetained;
 
     void Awake()
@@ -30,8 +30,7 @@ public class RestraintZone : MonoBehaviour
 
     bool IsDetainable(PrisonerStatusSystem status)
     {
-        return status.CurrentEmotional == PrisonerEmotional.Scared ||
-               status.CurrentConditional == PrisonerConditional.Electrocuted ||
+        return status.CurrentConditional == PrisonerConditional.Electrocuted ||
                status.CurrentConditional == PrisonerConditional.InPain;
     }
 }
