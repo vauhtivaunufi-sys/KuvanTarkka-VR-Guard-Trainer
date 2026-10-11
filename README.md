@@ -21,7 +21,8 @@ Aim, reach and feel are not VR-accurate here - final checks are always done in t
 | E | Right grip | Right hand: pick up / drop, open doors |
 | Q | Left grip | Left hand: pick up / drop |
 | Left mouse | Right trigger | Use item in right hand (taser, spray) |
-| Right mouse | Left trigger | Use item in left hand (shield up / down) |
+| Right mouse | Left trigger | Use item in left hand |
+| C (hold) | Raising the left arm | Left hand up in front of you - block blows with the shield |
 | R / T | A / B | Right controller buttons |
 | F / G | X / Y | Left controller buttons |
 | Tab | Left menu | Left menu button |

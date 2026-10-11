@@ -2,7 +2,9 @@ using System;
 using UnityEngine;
 
 
-// Trigger zone  that detains prisoners who are walked into it while not aggressive - Electrocuted, or InPain. Same non-aggressive check as ShieldEquipment.ShouldPush; an aggressive prisoner passing through is left alone.
+// Trigger zone that detains a prisoner who is moved into it while disabled - Electrocuted or InPain (in practice: pushed in with the shield).
+// Scared does NOT count any more: a scared prisoner keeps patrolling, so a patrol route crossing the zone made him "detain himself".
+// Interim rule until handcuffs and escort replace this zone in step 9.
 
 [RequireComponent(typeof(Collider))]
 public class RestraintZone : MonoBehaviour

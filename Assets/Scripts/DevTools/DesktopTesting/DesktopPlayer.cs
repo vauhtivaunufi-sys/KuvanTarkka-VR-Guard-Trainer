@@ -52,6 +52,9 @@ public class DesktopPlayer : MonoBehaviour
     [Tooltip("Left controller position relative to the camera (right, up, forward), in meters.")]
     [SerializeField] Vector3 leftHandOffset = new Vector3(-0.22f, -0.22f, 0.4f);
 
+    [Tooltip("Left controller position while C is held: raised in front of the face, the way you hold a shield up to block.")]
+    [SerializeField] Vector3 leftHandGuardOffset = new Vector3(0f, -0.12f, 0.35f);
+
     [Tooltip("Hands aim at whatever is under the crosshair, up to this distance.")]
     [SerializeField] float aimDistance = 15f;
 
@@ -329,9 +332,14 @@ public class DesktopPlayer : MonoBehaviour
     void PoseHands()
     {
         Vector3 aimPoint = AimPoint();
+        // Hold C = raise the left arm in front of you. In VR you just lift your arm; here the shield in the left hand
+        // would otherwise hang off to the side and never cover the head.
+        bool guard = controls.InputEnabled && DesktopControls.Key(Keyboard.current?.cKey, KeyCode.C);
+
         foreach (HandRig rig in hands)
         {
-            Vector3 position = head.TransformPoint(rig.offset);
+            Vector3 offset = guard && rig.hand == Hand.Left ? leftHandGuardOffset : rig.offset;
+            Vector3 position = head.TransformPoint(offset);
             // Each hand points at the crosshair target, so the taser beam / spray cone goes where the player looks.
             rig.root.SetPositionAndRotation(position, Quaternion.LookRotation(aimPoint - position, head.up));
         }
@@ -432,7 +440,7 @@ public class DesktopPlayer : MonoBehaviour
         "E - right hand: pick up / drop, open doors\n" +
         "Q - left hand: pick up / drop\n" +
         "Left mouse - use item in right hand (taser, spray)\n" +
-        "Right mouse - use item in left hand (shield up / down)\n" +
+        "Right mouse - use item in left hand    C (hold) - raise left hand (block with the shield)\n" +
         "R / T - right A / B     F / G - left X / Y     Tab - left menu\n" +
         "F3 - debug overlays     Esc - free the mouse, click to return";
 

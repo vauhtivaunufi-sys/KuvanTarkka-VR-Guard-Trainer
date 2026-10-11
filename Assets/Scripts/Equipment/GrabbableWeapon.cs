@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 
 // Base class for all handheld equipment (OC Spray, Taser, Shield).
 // Listens to the XRGrabInteractable activate action (trigger press while held) and calls <see cref="OnUse"/> when the cooldown allows it.
+// Also tracks which hand holds the item (a belt holster later does not count as a hand), so equipment can vibrate the right controller.
 
 [RequireComponent(typeof(XRGrabInteractable))]
 public abstract class GrabbableWeapon : MonoBehaviour
@@ -18,6 +20,11 @@ public abstract class GrabbableWeapon : MonoBehaviour
     XRGrabInteractable grabInteractable;
     float lastUseTime = Mathf.NegativeInfinity;
 
+    // The hand holding the item, or null when it lies somewhere / sits in a holster.
+    public Hand? HoldingHand { get; private set; }
+
+    public bool IsHeld => HoldingHand.HasValue;
+
     protected virtual void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
@@ -26,11 +33,15 @@ public abstract class GrabbableWeapon : MonoBehaviour
     protected virtual void OnEnable()
     {
         grabInteractable.activated.AddListener(HandleActivated);
+        grabInteractable.selectEntered.AddListener(HandleSelectEntered);
+        grabInteractable.selectExited.AddListener(HandleSelectExited);
     }
 
     protected virtual void OnDisable()
     {
         grabInteractable.activated.RemoveListener(HandleActivated);
+        grabInteractable.selectEntered.RemoveListener(HandleSelectEntered);
+        grabInteractable.selectExited.RemoveListener(HandleSelectExited);
     }
 
     void HandleActivated(ActivateEventArgs args)
@@ -40,6 +51,23 @@ public abstract class GrabbableWeapon : MonoBehaviour
 
         lastUseTime = Time.time;
         OnUse();
+    }
+
+    void HandleSelectEntered(SelectEnterEventArgs args)
+    {
+        // A socket (holster) "selects" the item too - that is storage, not a hand.
+        if (args.interactorObject is XRSocketInteractor)
+            return;
+
+        HoldingHand = args.interactorObject.handedness == InteractorHandedness.Left ? Hand.Left : Hand.Right;
+    }
+
+    void HandleSelectExited(SelectExitEventArgs args)
+    {
+        if (args.interactorObject is XRSocketInteractor)
+            return;
+
+        HoldingHand = null;
     }
 
     // Weapon-specific behaviour, executed once per allowed trigger press.

@@ -1,34 +1,21 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
 
-// Shield implementation: passive protection toggled on and off while held, unlike the one-shot Taser/OC Spray actions. While raised, blocks attacks from prisoners in front of it and shoves non-aggressive prisoners the player walks the shield into.
+// Shield implementation. Blocking is physical, like a real shield: a blow is stopped when the shield is held in a hand and its solid
+// collider is actually between the prisoner and the spot he is hitting (head or chest). Hold it up in front of you and you are
+// covered; let it hang at your side and you are not - there is no on/off button to remember.
+// Walking the shield into a non-aggressive prisoner still shoves him (reworked in step 8).
 
 [RequireComponent(typeof(Rigidbody))]
-public class ShieldEquipment : GrabbableWeapon
+public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
 {
-    [Tooltip("Whether the shield is currently raised and blocking.")]
-    [SerializeField] bool isBlocking;
-
-    [Tooltip("Trigger collider shaped to the shield, used to detect prisoners entering its blocking zone. Is Trigger must be checked.")]
-    [SerializeField] BoxCollider blockZone;
-
-    [Tooltip("Angle from the shield's forward direction, in degrees, within which an attack still counts as blocked.")]
-    [SerializeField] float blockAngle = 60f;
-
     [Tooltip("How fast a prisoner is shoved, as a multiplier of the shield's own movement speed.")]
     [SerializeField] float pushSpeedMultiplier = 1.5f;
 
-    class TrackedPrisoner
-    {
-        public Action Handler;
-    }
-
-    readonly Dictionary<PrisonerAttack, TrackedPrisoner> trackedPrisoners = new();
-
     Rigidbody rb;
+    Collider[] solidColliders;
     Vector3 previousPosition;
     Vector3 currentVelocity;
 
@@ -37,8 +24,29 @@ public class ShieldEquipment : GrabbableWeapon
         base.Awake();
         rb = GetComponent<Rigidbody>();
 
-        if (blockZone != null)
-            blockZone.isTrigger = true;
+        // The block test uses the shield's real shape: every non-trigger collider on it. Triggers are sensing zones, not plate.
+        var solids = new List<Collider>();
+        foreach (Collider c in GetComponentsInChildren<Collider>(true))
+        {
+            if (!c.isTrigger)
+                solids.Add(c);
+        }
+        solidColliders = solids.ToArray();
+
+        if (solidColliders.Length == 0)
+            Debug.LogWarning($"Shield '{name}' has no solid (non-trigger) collider - it can never block a blow.", this);
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        PlayerHealth.RegisterBlocker(this);
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        PlayerHealth.UnregisterBlocker(this);
     }
 
     void Start()
@@ -52,51 +60,36 @@ public class ShieldEquipment : GrabbableWeapon
         previousPosition = rb.position;
     }
 
+    // The trigger has no job on a shield - holding it is what matters.
     protected override void OnUse()
     {
-        isBlocking = !isBlocking;
     }
 
-    void OnTriggerEnter(Collider other)
+    // IMeleeBlocker: is the shield, held in a hand, on the line from the attacker's fist to where he is hitting?
+    public bool TryBlock(Vector3 attackOrigin, Vector3 target)
     {
-        PrisonerAttack attack = other.GetComponentInParent<PrisonerAttack>();
-        if (attack == null || trackedPrisoners.ContainsKey(attack))
-            return;
+        if (!IsHeld)
+            return false;
 
-        Action handler = () => HandleAttack(attack);
-        trackedPrisoners.Add(attack, new TrackedPrisoner { Handler = handler });
-        attack.OnAttack += handler;
-    }
+        Vector3 toTarget = target - attackOrigin;
+        float distance = toTarget.magnitude;
+        if (distance < 0.001f)
+            return false;
 
-    void OnTriggerExit(Collider other)
-    {
-        PrisonerAttack attack = other.GetComponentInParent<PrisonerAttack>();
-        if (attack == null || !trackedPrisoners.TryGetValue(attack, out TrackedPrisoner tracked))
-            return;
-
-        attack.OnAttack -= tracked.Handler;
-        trackedPrisoners.Remove(attack);
-    }
-
-    void HandleAttack(PrisonerAttack attack)
-    {
-        if (isBlocking && IsInFrontOfShield(attack.transform.position))
+        // Collider.Raycast tests only this one collider, so walls, the prisoner's own body or the player's hands can't get in the way.
+        var ray = new Ray(attackOrigin, toTarget / distance);
+        foreach (Collider c in solidColliders)
         {
-            Debug.Log("Shield blocked an attack", this);
-            return;
+            if (c != null && c.enabled && c.Raycast(ray, out _, distance))
+            {
+                Haptics.ShieldBlock(HoldingHand.Value);
+                return true;
+            }
         }
-
-        Debug.Log("Attack got through - shield was not blocking it", this);
+        return false;
     }
 
-    bool IsInFrontOfShield(Vector3 attackerPosition)
-    {
-        Vector3 toAttacker = attackerPosition - transform.position;
-        return Vector3.Angle(transform.forward, toAttacker) <= blockAngle;
-    }
-
-    // Requires a solid (non-trigger) collider on the shield matching its
-    // physical shape, separate from the blockZone trigger above.
+    // Requires a solid (non-trigger) collider on the shield matching its physical shape.
     void OnCollisionStay(Collision collision)
     {
         PrisonerStatusSystem status = collision.collider.GetComponentInParent<PrisonerStatusSystem>();
