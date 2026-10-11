@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 
-// Trigger zone  that detains prisoners who are walked into it while not aggressive - Scared, Electrocuted, or InPain. Same non-aggressive check as ShieldEquipment.ShouldPush; an aggressive prisoner passing through is left alone.
+// Trigger zone  that detains prisoners who are walked into it while not aggressive - Electrocuted, or InPain. Same non-aggressive check as ShieldEquipment.ShouldPush; an aggressive prisoner passing through is left alone.
 
 [RequireComponent(typeof(Collider))]
 public class RestraintZone : MonoBehaviour
