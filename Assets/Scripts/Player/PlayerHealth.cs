@@ -45,7 +45,7 @@ public class PlayerHealth : MonoBehaviour
     PlayerRig rig;
     PlayerFeedbackOverlay overlay;
 
-    // The health component on the player's rig, added on demand.
+    // The health component on the player's rig
     public static PlayerHealth GetOrAdd(PlayerRig rig)
     {
         if (rig == null)
@@ -60,6 +60,9 @@ public class PlayerHealth : MonoBehaviour
         overlay = GetComponent<PlayerFeedbackOverlay>();
         if (overlay == null)
             overlay = gameObject.AddComponent<PlayerFeedbackOverlay>();
+        // The red bar on the wrist reads Health itself add it here so the scene needs no setup, like the overlay
+        if (GetComponent<PlayerHealthBar>() == null)
+            gameObject.AddComponent<PlayerHealthBar>();
         Health = maxHealth;
     }
 
