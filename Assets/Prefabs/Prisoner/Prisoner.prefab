@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 4432293472306316263}
   - component: {fileID: 6642381725431510330}
   - component: {fileID: 2279394836186319878}
+  - component: {fileID: -1498748403222307167}
   m_Layer: 0
   m_Name: Prisoner
   m_TagString: Prisoner
@@ -176,6 +177,8 @@ MonoBehaviour:
   - {fileID: 0}
   reachThreshold: 0.5
   chaseRange: 6
+  patrolSpeed: 1.2
+  chaseSpeed: 3
 --- !u!114 &5805474102453271687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,6 +194,9 @@ MonoBehaviour:
   attackRange: 1.5
   attackCooldown: 3
   attackDuration: 2.4
+  hitTime: 0.9
+  hitReach: 1.8
+  damage: 20
 --- !u!114 &4432293472306316263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,7 +210,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrisonerStatusIndicator
   heightAboveHead: 0.35
-  fontSize: 64
+  textHeight: 0.06
+  constantSizeFrom: 2.5
+  maxScale: 6
 --- !u!54 &6642381725431510330
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -247,9 +255,29 @@ MonoBehaviour:
   animator: {fileID: 5581152255235476583}
   crossFadeDuration: 0.2
   movingSpeedThreshold: 0.1
+  walkAnimationSpeed: 1.2
+  chaseAnimationSpeed: 3
   tasedLieTime: 3.5
   tasedGetUpTime: 3
   tasedClipLength: 12.4
+--- !u!114 &-1498748403222307167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7695651866908141248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84c68053f472b454183b3cf2e34a015d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PrisonerCompliance
+  initialAggression: 0.55
+  hostileThreshold: 0.7
+  calmThreshold: 0.35
+  personalSpace: 1.8
+  crowdingAggressionPerSecond: 0.06
+  crowdingBeforeLashOut: 1.5
 --- !u!1001 &2026243584884142582
 PrefabInstance:
   m_ObjectHideFlags: 0

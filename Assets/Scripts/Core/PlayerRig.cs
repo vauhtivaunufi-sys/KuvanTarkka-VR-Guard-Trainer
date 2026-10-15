@@ -2,7 +2,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 
 // Single point of truth for "where is the player": head, feet and facing.
-// Lives on the XR Origin. Every system that used to look up Camera.main on its own (prisoner AI, attack, labels) asks this instead, so the answer is consistent and cheap. Falls back to Camera.main when the component is missing, so nothing hard-breaks in a test scene
+// Lives on the XR Origin. Every system that used to look up Camera.main on its own (prisoner AI, attack, labels) asks this instead
 
 [DisallowMultipleComponent]
 public class PlayerRig : MonoBehaviour

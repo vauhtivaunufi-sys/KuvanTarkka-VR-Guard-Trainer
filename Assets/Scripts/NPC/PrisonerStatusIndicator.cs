@@ -1,24 +1,27 @@
+using TMPro;
 using UnityEngine;
 
-
-// DEBUG label above the prisoner's head: his condition (calm, electrocuted, ...) and what he is doing (patrolling, chasing, and
-// whether he currently sees the player). Hidden together with every other debug aid by one switch - Tools > KuvanTarkka >
-// Debug Overlays in the editor, or holding the left menu button in the headset (see TrainingDebug).
-
+// Debug label above the prisoner, hidden by the debug switch (TrainingDebug)
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerStatusIndicator : MonoBehaviour
 {
-    [Tooltip("Extra height above the top of the prisoner's collider, in meters.")]
+    [Tooltip("Gap above the top of the collider, m")]
     [SerializeField] float heightAboveHead = 0.35f;
 
-    [Tooltip("Font size of the label. Bigger = easier to read from afar.")]
-    [SerializeField] int fontSize = 64;
+    [Tooltip("Line height up close, m")]
+    [SerializeField] float textHeight = 0.06f;
+
+    [Tooltip("From this distance the label grows to keep the same size on screen, m")]
+    [SerializeField] float constantSizeFrom = 2.5f;
+
+    [Tooltip("Largest growth factor at long range")]
+    [SerializeField] float maxScale = 6f;
 
     PrisonerStatusSystem status;
     PrisonerAIMovement movement;
     PrisonerPerception perception;
     Collider bodyCollider;
-    TextMesh label;
+    TextMeshPro label;
     string lastText;
 
     void Awake()
@@ -58,12 +61,20 @@ public class PrisonerStatusIndicator : MonoBehaviour
         if (label == null || !TrainingDebug.Enabled)
             return;
 
-        label.transform.position = GetLabelPosition();
+        Transform t = label.transform;
+        t.position = GetLabelPosition();
 
         if (PlayerRig.TryGetHead(out Transform head))
         {
-            // Face the camera (TextMesh is readable when looking along +Z).
-            label.transform.rotation = Quaternion.LookRotation(label.transform.position - head.position);
+            Vector3 fromHead = t.position - head.position;
+            float distance = fromHead.magnitude;
+
+            // Face the eyes, stay upright
+            if (distance > 0.01f)
+                t.rotation = Quaternion.LookRotation(fromHead, Vector3.up);
+
+            // Grows with distance so far labels stay readable
+            t.localScale = Vector3.one * Mathf.Clamp(distance / constantSizeFrom, 1f, maxScale);
         }
 
         UpdateText();
@@ -71,23 +82,25 @@ public class PrisonerStatusIndicator : MonoBehaviour
 
     void CreateLabel()
     {
-        // A standalone object, not a child: the prisoner's transform scale
-        // would distort the text otherwise.
-        GameObject labelObject = new GameObject($"{name} StatusLabel");
-        label = labelObject.AddComponent<TextMesh>();
-        label.anchor = TextAnchor.LowerCenter;
-        label.alignment = TextAlignment.Center;
-        label.fontSize = fontSize;
-        label.characterSize = 0.005f;
+        // Standalone object, so the prisoner's scale doesn't distort the text
+        var labelObject = new GameObject($"{name} StatusLabel", typeof(RectTransform));
+        label = labelObject.AddComponent<TextMeshPro>();
+        label.rectTransform.pivot = new Vector2(0.5f, 0f);
+        label.rectTransform.sizeDelta = new Vector2(2f, 0.5f);
+        label.alignment = TextAlignmentOptions.Bottom;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        // 3D TextMeshPro: font size 1 is 0.1 m
+        label.fontSize = textHeight * 10f;
+        label.fontStyle = FontStyles.Bold;
+        label.outlineWidth = 0.25f;
+        label.outlineColor = new Color32(0, 0, 0, 255);
         label.richText = true;
         labelObject.transform.position = GetLabelPosition();
     }
 
     Vector3 GetLabelPosition()
     {
-        float top = bodyCollider != null
-            ? bodyCollider.bounds.max.y
-            : transform.position.y;
+        float top = bodyCollider != null ? bodyCollider.bounds.max.y : transform.position.y;
         return new Vector3(transform.position.x, top + heightAboveHead, transform.position.z);
     }
 
@@ -98,47 +111,53 @@ public class PrisonerStatusIndicator : MonoBehaviour
         if (movementLine != null)
             text += "\n" + movementLine;
 
+        PrisonerCompliance compliance = GetComponent<PrisonerCompliance>();
+        if (compliance != null)
+            text += $"\nAGGR {compliance.Aggression:0.00}";
+
         if (text == lastText)
             return;
 
         lastText = text;
-        label.text = text;
+        // Dark backing behind the letters for contrast on bright walls
+        label.text = $"<mark=#000000A0>{text}</mark>";
     }
 
+    // Hex colors: TextMeshPro knows only a few color names
     string BuildStatusLine()
     {
         switch (status.CurrentConditional)
         {
             case PrisonerConditional.Electrocuted:
-                return "<color=yellow>ELECTROCUTED</color>";
+                return "<color=#FFE24D>ELECTROCUTED</color>";
 
             case PrisonerConditional.InPain:
-                return "<color=orange>IN PAIN</color>";
+                return "<color=#FF9A2E>IN PAIN</color>";
 
             case PrisonerConditional.Detained:
-                return "<color=green>DETAINED</color>";
+                return "<color=#4CE06A>DETAINED</color>";
         }
 
         return status.CurrentEmotional == PrisonerEmotional.Scared
-            ? "<color=cyan>SCARED</color>"
-            : "<color=white>CALM</color>";
+            ? "<color=#4DD8FF>SCARED</color>"
+            : "<color=#FFFFFF>CALM</color>";
     }
 
     string BuildMovementLine()
     {
-        // Frozen by an effect or detained: there is no movement to show.
+        // Frozen by an effect or detained: no movement to show
         if (movement == null || !movement.enabled ||
             status.CurrentConditional != PrisonerConditional.Idle)
             return null;
 
         if (!movement.IsActive)
-            return "<color=grey>IN CELL</color>";
+            return "<color=#C8C8C8>IN CELL</color>";
 
         string line = movement.IsChasing
-            ? "<color=red>CHASING</color>"
-            : "<color=grey>PATROLLING</color>";
+            ? "<color=#FF4D4D>CHASING</color>"
+            : "<color=#C8C8C8>PATROLLING</color>";
         if (perception != null && perception.CanSeePlayer)
-            line += " <color=red>(sees you)</color>";
+            line += " <color=#FF4D4D>(sees you)</color>";
         return line;
     }
 }

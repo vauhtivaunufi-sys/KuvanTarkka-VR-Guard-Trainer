@@ -19,7 +19,7 @@ public static class Haptics
         Pulse(hand, 0.6f, 0.1f);
     }
 
-    // The one place that applies Intensity. Every preset goes through here, so the global slider can never be forgotten in a new preset.
+    // The one place that applies Intensity. Every preset goes through here, so the global slider can never be forgotten in a new preset
     static void Pulse(Hand hand, float amplitude, float duration)
     {
         if (Intensity <= 0f)
