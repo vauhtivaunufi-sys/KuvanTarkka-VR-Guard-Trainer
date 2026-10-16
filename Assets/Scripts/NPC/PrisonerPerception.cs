@@ -153,6 +153,15 @@ public class PrisonerPerception : MonoBehaviour
         }
     }
 
+    // Can he hear a sound made at position, through a wall only from half the distance
+    public bool CanHear(Vector3 position, float radius)
+    {
+        float d = Vector3.Distance(EyePosition, position);
+        if (d > radius)
+            return false;
+        return d <= radius * 0.5f || IsLineClearIgnoringPlayer(position);
+    }
+
     // Broadcasts a noise to every prisoner within radius. Walls halve the radius (muffled).
     public static void ReportNoise(Vector3 position, float radius, bool fromPlayer)
     {

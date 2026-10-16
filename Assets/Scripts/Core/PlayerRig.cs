@@ -1,5 +1,6 @@
 using Unity.XR.CoreUtils;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 // Single point of truth for "where is the player": head, feet and facing.
 // Lives on the XR Origin. Every system that used to look up Camera.main on its own (prisoner AI, attack, labels) asks this instead
@@ -88,6 +89,10 @@ public class PlayerRig : MonoBehaviour
         if (GetComponent<PlayerHealth>() == null)
             gameObject.AddComponent<PlayerHealth>();
 
+        // Every officer can give orders
+        if (GetComponent<VerbalCommandMenu>() == null)
+            gameObject.AddComponent<VerbalCommandMenu>();
+
         if (instance != null && instance != this)
         {
             Debug.LogWarning("More than one PlayerRig in the scene - only the first one is used.", this);
@@ -100,6 +105,33 @@ public class PlayerRig : MonoBehaviour
     {
         if (instance == this)
             instance = null;
+    }
+
+    readonly Transform[] controllers = new Transform[2];
+
+    // Controller object of one hand, the child of the Camera Offset holding that hand's interactor
+    public Transform GetController(Hand hand)
+    {
+        Transform cached = controllers[(int)hand];
+        if (cached != null)
+            return cached;
+
+        XROrigin origin = GetComponent<XROrigin>();
+        Transform offset = origin != null && origin.CameraFloorOffsetObject != null ? origin.CameraFloorOffsetObject.transform : null;
+        InteractorHandedness wanted = hand == Hand.Left ? InteractorHandedness.Left : InteractorHandedness.Right;
+
+        foreach (XRBaseInteractor interactor in GetComponentsInChildren<XRBaseInteractor>(true))
+        {
+            if (interactor.handedness != wanted)
+                continue;
+
+            Transform t = interactor.transform;
+            while (offset != null && t.parent != null && t.parent != offset)
+                t = t.parent;
+            controllers[(int)hand] = t;
+            return t;
+        }
+        return null;
     }
 
     // True when the transform is part of the XR rig hierarchy (head, hands, belt). Held equipment is not reparented by XRI, so callers that also need to ignore held items check for GrabbableWeapon separately

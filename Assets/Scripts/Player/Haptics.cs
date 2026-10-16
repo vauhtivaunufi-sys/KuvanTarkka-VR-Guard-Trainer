@@ -19,6 +19,12 @@ public static class Haptics
         Pulse(hand, 0.6f, 0.1f);
     }
 
+    // Command menu moved to another command: a tiny tick, like the notch of a dial
+    public static void MenuTick(Hand hand)
+    {
+        Pulse(hand, 0.2f, 0.03f);
+    }
+
     // The one place that applies Intensity. Every preset goes through here, so the global slider can never be forgotten in a new preset
     static void Pulse(Hand hand, float amplitude, float duration)
     {

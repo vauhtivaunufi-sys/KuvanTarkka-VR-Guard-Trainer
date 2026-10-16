@@ -19,11 +19,23 @@ public enum PrisonerEmotional
 }
 
 
-// Tracks the prisoner's current conditional status and its reactions to equipment effects. Temporary effects wear off after their duration;
+// Restraint progress, separate from effects: he can be in pain and already submitting
+public enum PrisonerRestraint
+{
+    Free,
+    Submitting,
+    Cuffed
+}
+
+
+// Tracks the prisoner's conditional status and its reactions to equipment effects. Temporary effects wear off after their duration;
 // Detained is permanent. Also tracks the emotional status, which other systems (e.g. attack behaviour) read and set.
 
 public class PrisonerStatusSystem : MonoBehaviour
 {
+    [Tooltip("Name in the training log")]
+    [SerializeField] string displayName = "Inmate";
+
     [Tooltip("How long the prisoner stays electrocuted after a taser hit, in seconds.")]
     [SerializeField] float electrocutedDuration = 5f;
 
@@ -36,17 +48,34 @@ public class PrisonerStatusSystem : MonoBehaviour
     // Raised whenever the conditional status changes.
     public event Action<PrisonerConditional> OnConditionalStatusChanged;
 
+    // Raised on every hit, also when the status stays the same (a second taser hit)
+    public event Action<PrisonerConditional, float> OnEffectApplied;
+
     // Raised whenever the emotional status changes.
     public event Action<PrisonerEmotional> OnEmotionalStatusChanged;
+
+    public event Action<PrisonerRestraint> OnRestraintChanged;
+
+    public string DisplayName => displayName;
 
     public PrisonerConditional CurrentConditional { get; private set; } = PrisonerConditional.Idle;
 
     public PrisonerEmotional CurrentEmotional { get; private set; } = PrisonerEmotional.Neutral;
 
+    public PrisonerRestraint CurrentRestraint { get; private set; } = PrisonerRestraint.Free;
+
     // Effect durations, exposed so other systems (e.g. animation) can sync to the effect timeline.
     public float ElectrocutedDuration => electrocutedDuration;
 
     public float InPainDuration => inPainDuration;
+
+    public bool IsDetained => CurrentConditional == PrisonerConditional.Detained;
+
+    public bool IsCuffed => CurrentRestraint == PrisonerRestraint.Cuffed;
+
+    // An effect stops him acting on his own right now
+    public bool IsUnderEffect => CurrentConditional == PrisonerConditional.Electrocuted ||
+                                 CurrentConditional == PrisonerConditional.InPain;
 
     Coroutine recoverRoutine;
     Coroutine calmDownRoutine;
@@ -72,6 +101,20 @@ public class PrisonerStatusSystem : MonoBehaviour
         if (calmDownRoutine != null)
             StopCoroutine(calmDownRoutine);
         SetConditional(PrisonerConditional.Detained);
+        TrainingLog.Record(TrainingEventType.Restraint, $"{displayName} secured");
+    }
+
+    public void SetRestraint(PrisonerRestraint restraint)
+    {
+        if (CurrentRestraint == restraint)
+            return;
+        // Cuffs come off only through the scenario, never by a stray command
+        if (CurrentRestraint == PrisonerRestraint.Cuffed)
+            return;
+
+        CurrentRestraint = restraint;
+        TrainingDebug.Log($"{displayName} restraint -> {restraint}", this);
+        OnRestraintChanged?.Invoke(restraint);
     }
 
     public void SetEmotional(PrisonerEmotional emotional)
@@ -80,7 +123,7 @@ public class PrisonerStatusSystem : MonoBehaviour
             return;
 
         CurrentEmotional = emotional;
-        Debug.Log($"Prisoner emotional status -> {emotional}", this);
+        TrainingDebug.Log($"{displayName} emotional status -> {emotional}", this);
         OnEmotionalStatusChanged?.Invoke(emotional);
     }
 
@@ -92,6 +135,7 @@ public class PrisonerStatusSystem : MonoBehaviour
         if (recoverRoutine != null)
             StopCoroutine(recoverRoutine);
         SetConditional(conditional);
+        OnEffectApplied?.Invoke(conditional, duration);
         recoverRoutine = StartCoroutine(RecoverAfterDelay(duration));
     }
 
@@ -128,8 +172,15 @@ public class PrisonerStatusSystem : MonoBehaviour
         if (CurrentConditional == conditional)
             return;
 
+        PrisonerConditional previous = CurrentConditional;
         CurrentConditional = conditional;
-        Debug.Log($"Prisoner conditional status -> {conditional}", this);
+        TrainingDebug.Log($"{displayName} conditional status -> {conditional}", this);
+
+        if (conditional == PrisonerConditional.Electrocuted || conditional == PrisonerConditional.InPain)
+            TrainingLog.Record(TrainingEventType.PrisonerState, $"{displayName}: {conditional}");
+        else if (conditional == PrisonerConditional.Idle)
+            TrainingLog.Record(TrainingEventType.PrisonerState, $"{displayName} recovered from {previous}");
+
         OnConditionalStatusChanged?.Invoke(conditional);
     }
 }

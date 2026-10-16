@@ -25,6 +25,7 @@ Aim, reach and feel are not VR-accurate here - final checks are always done in t
 | C (hold) | Raising the left arm | Left hand up in front of you - block blows with the shield |
 | R / T | A / B | Right controller buttons |
 | F / G | X / Y | Left controller buttons |
+| G (hold) + WASD, release G | Y (hold) + left stick | Verbal command menu: pick a command, release to say it |
 | Tab | Left menu | Left menu button |
 | F1 | - | Show / hide controls on screen |
 | F3 | - | Debug overlays on / off |

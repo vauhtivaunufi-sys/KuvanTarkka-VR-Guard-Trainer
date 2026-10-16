@@ -167,8 +167,11 @@ public class PrisonerAnimationController : MonoBehaviour
                 return "Sprayed";
         }
 
-        // PrisonerAttack owns the swing window: it roots the agent for exactly
-        // as long as the Attack state holds the body, so the two cannot drift apart.
+        // Obeyed "face the wall" and got there: hands on the wall
+        if (movement != null && movement.IsAtWall)
+            return "Detained";
+
+        // Movement stands him still for exactly as long as the swing lasts
         if (attack != null && attack.IsAttacking)
             return "Attack";
 

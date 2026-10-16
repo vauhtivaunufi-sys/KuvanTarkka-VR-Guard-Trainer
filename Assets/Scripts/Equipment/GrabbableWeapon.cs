@@ -25,6 +25,9 @@ public abstract class GrabbableWeapon : MonoBehaviour
 
     public bool IsHeld => HoldingHand.HasValue;
 
+    // Items that use B/Y themselves (the taser's arc later) keep the command menu off that hand
+    public virtual bool UsesSecondaryButton => false;
+
     protected virtual void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();

@@ -1,16 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEngine.AI;
 
-
-// Melee attack behaviour for prisoner NPCs (M11): attacks the player when close enough, unless under an equipment effect, detained or scared.
-// The blow is resolved when it LANDS (hitTime into the swing), not when the swing starts: stepping back out of reach or getting the
-// shield between you and him in time avoids it - exactly what a trainee should learn to do. Damage goes to PlayerHealth.
-// Only once he is out of his cell (PrisonerAIMovement.IsActive) and only at a player he can actually see (PrisonerPerception) - so no more swings from inside a closed cell or through a door.
-// Stops the NavMeshAgent while the player is within attack range so the attack does not fight with patrol movement, and keeps it stopped
-// until the swing has played out - otherwise backing out of range mid-swing hands the agent straight back to the chase and the prisoner
-// glides after the player in his attack pose, with no walk cycle under him.
-
+// Prisoner's punch: swings only when free, wants to fight, sees the officer and has him in reach
+// The blow is resolved when it lands, so stepping back or raising the shield in time avoids it
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerAttack : MonoBehaviour
 {
@@ -35,13 +27,18 @@ public class PrisonerAttack : MonoBehaviour
     // Raised every time the prisoner performs an attack
     public event Action OnAttack;
 
-    // True while a swing is still playing out. PrisonerAnimationController holds the Attack animation state for exactly as long as this is true.
+    // True while a swing is playing out
     public bool IsAttacking => Time.time < attackEndTime;
+
+    // Close enough to swing at an officer he can see
+    public bool IsInReach => perception.CanSeePlayer && HorizontalDistanceToPlayer() <= attackRange;
+
+    public float AttackRange => attackRange;
 
     PrisonerStatusSystem status;
     PrisonerAIMovement movement;
     PrisonerPerception perception;
-    NavMeshAgent agent;
+    PrisonerCompliance compliance;
     PlayerHealth playerHealth;
     float lastAttackTime = float.NegativeInfinity;
     float attackEndTime = float.NegativeInfinity;
@@ -53,16 +50,14 @@ public class PrisonerAttack : MonoBehaviour
         status = GetComponent<PrisonerStatusSystem>();
         movement = GetComponent<PrisonerAIMovement>();
         perception = PrisonerPerception.GetOrAdd(gameObject);
-        agent = GetComponent<NavMeshAgent>();
+        compliance = PrisonerCompliance.GetOrAdd(gameObject);
     }
 
     void Update()
     {
-        // While electrocuted, in pain or detained, PrisonerAIMovement owns agent.isStopped; touch nothing so the two scripts don't conflict.
-        if (status.CurrentConditional != PrisonerConditional.Idle)
+        // Tased, sprayed, submitting or cuffed: a blow that hasn't landed yet never lands
+        if (status.CurrentConditional != PrisonerConditional.Idle || status.CurrentRestraint != PrisonerRestraint.Free)
         {
-            // Getting tased or sprayed cancels the swing. Clear it, or the swing outlives the interrupt and leaves him planted
-            // once he recovers - and a blow that hasn't landed yet never lands.
             CancelSwing();
             return;
         }
@@ -84,21 +79,16 @@ public class PrisonerAttack : MonoBehaviour
             ResolveHit(rig);
         }
 
-        // Officer already down: stop hitting him.
         if (playerHealth == null)
             playerHealth = PlayerHealth.GetOrAdd(rig);
-        if (playerHealth != null && playerHealth.IsIncapacitated)
+        // Officer already down: stop hitting him
+        if (playerHealth.IsIncapacitated)
             return;
 
-        // Scared prisoners never attack and keep patrolling instead. A player he can't see (wall, closed door) can't be hit.
-        bool canSee = perception == null || perception.CanSeePlayer;
-        bool inRange = status.CurrentEmotional != PrisonerEmotional.Scared && canSee &&
-                       HorizontalDistanceToPlayer() <= attackRange;
+        if (IsAttacking || Time.time - lastAttackTime < attackCooldown)
+            return;
 
-        if (agent != null && agent.isOnNavMesh)
-            agent.isStopped = inRange || IsAttacking;
-
-        if (inRange && Time.time - lastAttackTime >= attackCooldown)
+        if (compliance.WantsToAttack && IsInReach)
             Attack();
     }
 
@@ -108,11 +98,6 @@ public class PrisonerAttack : MonoBehaviour
         attackEndTime = Time.time + attackDuration;
         pendingHitTime = Time.time + hitTime;
         hitPending = true;
-
-        // isStopped only cuts the agent's throttle, it does not clear momentum
-        if (agent != null && agent.isOnNavMesh)
-            agent.velocity = Vector3.zero;
-
         OnAttack?.Invoke();
     }
 
@@ -122,7 +107,7 @@ public class PrisonerAttack : MonoBehaviour
         hitPending = false;
     }
 
-    // The moment the fist arrives: is the officer still in reach and in front of him?
+    // The moment the fist arrives: is the officer still in reach and in front of him
     void ResolveHit(PlayerRig rig)
     {
         Vector3 toPlayer = rig.FeetPosition - transform.position;
@@ -135,18 +120,20 @@ public class PrisonerAttack : MonoBehaviour
             return;
         }
 
-        // Fist height: roughly shoulder level of an average man.
+        // Fist at roughly shoulder height
         Vector3 fist = transform.position + Vector3.up * 1.35f + transform.forward * 0.3f;
         if (playerHealth == null)
             playerHealth = PlayerHealth.GetOrAdd(rig);
-        if (playerHealth != null)
-            playerHealth.ReceiveMeleeAttack(fist, name, damage);
+        playerHealth.ReceiveMeleeAttack(fist, name, damage);
     }
 
     float HorizontalDistanceToPlayer()
     {
-        // Horizontal only: the player's head is ~1.7 m up, so a 3D distance would never drop below a 1.5 m attack range
-        Vector3 offset = PlayerRig.Instance.FeetPosition - transform.position;
+        PlayerRig rig = PlayerRig.Instance;
+        if (rig == null)
+            return float.PositiveInfinity;
+        // Horizontal only: the head is 1.7 m up, a 3D distance would never fit a 1.5 m range
+        Vector3 offset = rig.FeetPosition - transform.position;
         offset.y = 0f;
         return offset.magnitude;
     }

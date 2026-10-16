@@ -20,6 +20,7 @@ public class PrisonerStatusIndicator : MonoBehaviour
     PrisonerStatusSystem status;
     PrisonerAIMovement movement;
     PrisonerPerception perception;
+    PrisonerCompliance compliance;
     Collider bodyCollider;
     TextMeshPro label;
     string lastText;
@@ -28,7 +29,8 @@ public class PrisonerStatusIndicator : MonoBehaviour
     {
         status = GetComponent<PrisonerStatusSystem>();
         movement = GetComponent<PrisonerAIMovement>();
-        perception = GetComponent<PrisonerPerception>();
+        perception = PrisonerPerception.GetOrAdd(gameObject);
+        compliance = PrisonerCompliance.GetOrAdd(gameObject);
         bodyCollider = GetComponent<Collider>();
         CreateLabel();
     }
@@ -110,10 +112,9 @@ public class PrisonerStatusIndicator : MonoBehaviour
         string movementLine = BuildMovementLine();
         if (movementLine != null)
             text += "\n" + movementLine;
-
-        PrisonerCompliance compliance = GetComponent<PrisonerCompliance>();
-        if (compliance != null)
-            text += $"\nAGGR {compliance.Aggression:0.00}";
+        string moodLine = BuildMoodLine();
+        if (moodLine != null)
+            text += "\n" + moodLine;
 
         if (text == lastText)
             return;
@@ -138,26 +139,43 @@ public class PrisonerStatusIndicator : MonoBehaviour
                 return "<color=#4CE06A>DETAINED</color>";
         }
 
+        switch (status.CurrentRestraint)
+        {
+            case PrisonerRestraint.Submitting:
+                return "<color=#4DD8FF>SUBMITTING</color>";
+
+            case PrisonerRestraint.Cuffed:
+                return "<color=#4CE06A>CUFFED</color>";
+        }
+
         return status.CurrentEmotional == PrisonerEmotional.Scared
             ? "<color=#4DD8FF>SCARED</color>"
-            : "<color=#FFFFFF>CALM</color>";
+            : "<color=#FFFFFF>FREE</color>";
     }
 
+    // What the AI is doing: patrolling, chasing, confronting
     string BuildMovementLine()
     {
-        // Frozen by an effect or detained: no movement to show
-        if (movement == null || !movement.enabled ||
-            status.CurrentConditional != PrisonerConditional.Idle)
+        if (movement == null)
             return null;
 
         if (!movement.IsActive)
             return "<color=#C8C8C8>IN CELL</color>";
 
-        string line = movement.IsChasing
-            ? "<color=#FF4D4D>CHASING</color>"
-            : "<color=#C8C8C8>PATROLLING</color>";
+        string line = $"<color=#C8C8C8>{movement.CurrentMode.ToString().ToUpperInvariant()}</color>";
         if (perception != null && perception.CanSeePlayer)
             line += " <color=#FF4D4D>(sees you)</color>";
         return line;
+    }
+
+    string BuildMoodLine()
+    {
+        if (compliance == null)
+            return null;
+
+        string mood = compliance.IsHostile ? "<color=#FF4D4D>HOSTILE</color>"
+                    : compliance.IsAgitated ? "<color=#FF9A2E>AGITATED</color>"
+                    : "<color=#FFFFFF>CALM</color>";
+        return $"{mood} {compliance.Aggression:0.00}";
     }
 }
