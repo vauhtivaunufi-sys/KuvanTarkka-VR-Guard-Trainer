@@ -42,8 +42,6 @@ public class PlayerHealthBar : MonoBehaviour
     // Canvas is laid out in units and scaled down to meters
     const float UnitsPerMeter = 2000f;
 
-    static Sprite roundedSprite;
-
     PlayerHealth health;
     Transform anchor;
     Transform head;
@@ -263,7 +261,7 @@ public class PlayerHealthBar : MonoBehaviour
         image.raycastTarget = false;
         if (rounded)
         {
-            image.sprite = RoundedSprite();
+            image.sprite = VrUi.RoundedSprite();
             image.type = Image.Type.Sliced;
         }
         return image;
@@ -294,35 +292,5 @@ public class PlayerHealthBar : MonoBehaviour
         rect.anchorMin = rect.anchorMax = new Vector2(0f, 0.5f);
         rect.anchoredPosition = new Vector2(x, y);
         rect.sizeDelta = new Vector2(width, height);
-    }
-
-    // White rounded rectangle made in code, 9-sliced so corners keep their shape at any size
-    static Sprite RoundedSprite()
-    {
-        if (roundedSprite != null)
-            return roundedSprite;
-
-        const int size = 32;
-        const float radius = 10f;
-        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-        var pixels = new Color32[size * size];
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float cx = Mathf.Clamp(x + 0.5f, radius, size - radius);
-                float cy = Mathf.Clamp(y + 0.5f, radius, size - radius);
-                float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(cx, cy));
-                byte a = (byte)(Mathf.Clamp01(radius - dist + 0.5f) * 255f);
-                pixels[y * size + x] = new Color32(255, 255, 255, a);
-            }
-        }
-
-        tex.SetPixels32(pixels);
-        tex.Apply(false, true);
-        roundedSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect,
-            new Vector4(radius, radius, radius, radius));
-        return roundedSprite;
     }
 }

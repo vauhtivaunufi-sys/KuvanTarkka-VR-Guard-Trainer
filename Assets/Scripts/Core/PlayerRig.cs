@@ -14,6 +14,9 @@ public class PlayerRig : MonoBehaviour
     [Tooltip("Approximate height of the chest below the eyes, in meters. Used as the aim point for attacks and line-of-sight checks.")]
     [SerializeField] float chestBelowHead = 0.35f;
 
+    [Tooltip("Health and the command menu, off in the main menu")]
+    [SerializeField] bool officerGear = true;
+
     static PlayerRig instance;
     static float nextSearchTime;
 
@@ -86,12 +89,16 @@ public class PlayerRig : MonoBehaviour
         }
 
         // The officer always has health (and with it the red bar and the damage overlay) from the first frame, not only once a prisoner first swings at him.
-        if (GetComponent<PlayerHealth>() == null)
+        if (officerGear && GetComponent<PlayerHealth>() == null)
             gameObject.AddComponent<PlayerHealth>();
 
         // Every officer can give orders
-        if (GetComponent<VerbalCommandMenu>() == null)
+        if (officerGear && GetComponent<VerbalCommandMenu>() == null)
             gameObject.AddComponent<VerbalCommandMenu>();
+
+        // Points at menus and panels with the controllers
+        if (GetComponent<VrPointer>() == null)
+            gameObject.AddComponent<VrPointer>();
 
         if (instance != null && instance != this)
         {

@@ -49,7 +49,8 @@ public abstract class GrabbableWeapon : MonoBehaviour
 
     void HandleActivated(ActivateEventArgs args)
     {
-        if (Time.time - lastUseTime < cooldownDuration)
+        // Paused game: the trigger is for the menu
+        if (Time.timeScale <= 0f || Time.time - lastUseTime < cooldownDuration)
             return;
 
         lastUseTime = Time.time;

@@ -2,22 +2,26 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Radial menu of verbal commands: hold left Y, tilt the left stick to pick, release Y to say it
-// Desktop test mode: hold G, pick with WASD, release G
+// Radial menu of verbal commands: press left Y to open, tilt the left stick to pick, let the stick go to say it
+// Y and the stick are both under the thumb, so nothing has to be held while tilting
+// Desktop test mode: press G, pick with WASD, let the keys go
 [RequireComponent(typeof(PlayerRig))]
 public class VerbalCommandMenu : MonoBehaviour
 {
     [Tooltip("Stick tilt 0..1 needed to select a command")]
     [SerializeField] float selectDeadzone = 0.5f;
 
-    [Tooltip("Releasing Y this soon after the stick went back to centre still counts, s")]
-    [SerializeField] float releaseGrace = 0.3f;
+    [Tooltip("A command counts once the stick rests on it this long, so sweeping past others says nothing, s")]
+    [SerializeField] float holdToPick = 0.12f;
+
+    [Tooltip("The menu closes by itself after this long without a pick, s")]
+    [SerializeField] float autoCloseAfter = 8f;
 
     [Tooltip("Menu centre from the left controller (right, up, forward), m")]
-    [SerializeField] Vector3 menuOffset = new Vector3(0f, 0.14f, 0.06f);
+    [SerializeField] Vector3 menuOffset = new Vector3(0f, 0.17f, 0.06f);
 
     [Tooltip("Distance from the centre to each command, m")]
-    [SerializeField] float radius = 0.085f;
+    [SerializeField] float radius = 0.115f;
 
     [Tooltip("Optional voice lines in VerbalCommand order, empty means subtitles only")]
     [SerializeField] AudioClip[] commandClips;
@@ -42,7 +46,10 @@ public class VerbalCommandMenu : MonoBehaviour
 
     bool isOpen;
     int selected = -1;
-    float lastTiltTime = float.NegativeInfinity;
+    int picked = -1;
+    float selectedSince;
+    float openedAt;
+    bool waitForCentre;
 
     public bool IsOpen => isOpen;
 
@@ -85,7 +92,8 @@ public class VerbalCommandMenu : MonoBehaviour
 
     void Update()
     {
-        bool down = health != null && health.IsIncapacitated;
+        // Paused game: nobody is listening
+        bool down = (health != null && health.IsIncapacitated) || Time.timeScale <= 0f;
 
         if (!isOpen)
         {
@@ -100,16 +108,17 @@ public class VerbalCommandMenu : MonoBehaviour
             return;
         }
 
+        // Y again: changed his mind
+        if (ControllerInput.GetButtonDown(Hand.Left, ControllerButton.Secondary))
+        {
+            Close();
+            return;
+        }
+
         UpdateSelection();
 
-        if (ControllerInput.GetButtonUp(Hand.Left, ControllerButton.Secondary))
-        {
-            // Stick back in the centre for a while means he changed his mind
-            bool stillAiming = Time.time - lastTiltTime <= releaseGrace;
-            if (selected >= 0 && stillAiming)
-                Say(Commands[selected]);
+        if (picked < 0 && Time.unscaledTime - openedAt > autoCloseAfter)
             Close();
-        }
     }
 
     void LateUpdate()
@@ -139,7 +148,10 @@ public class VerbalCommandMenu : MonoBehaviour
     {
         isOpen = true;
         selected = -1;
-        lastTiltTime = float.NegativeInfinity;
+        picked = -1;
+        openedAt = Time.unscaledTime;
+        // Opened while walking: the stick has to come back to the centre first, or he'd shout by accident
+        waitForCentre = ControllerInput.GetStick(Hand.Left).magnitude >= selectDeadzone;
         // The stick picks commands now, so walking pauses
         LocomotionLock.Acquire();
         menuRoot.gameObject.SetActive(true);
@@ -151,6 +163,7 @@ public class VerbalCommandMenu : MonoBehaviour
     {
         isOpen = false;
         selected = -1;
+        picked = -1;
         LocomotionLock.Release();
         if (menuRoot != null)
             menuRoot.gameObject.SetActive(false);
@@ -160,9 +173,26 @@ public class VerbalCommandMenu : MonoBehaviour
     {
         Vector2 stick = ControllerInput.GetStick(Hand.Left);
         if (stick.magnitude < selectDeadzone)
+        {
+            waitForCentre = false;
+            // Stick let go after resting on a command: say it
+            if (picked >= 0)
+            {
+                VerbalCommand command = Commands[picked];
+                Close();
+                Say(command);
+            }
+            else if (selected >= 0)
+            {
+                // Only swept past, nothing picked
+                selected = -1;
+                RefreshHighlight();
+            }
             return;
+        }
 
-        lastTiltTime = Time.time;
+        if (waitForCentre)
+            return;
 
         // 0 degrees straight up, growing clockwise, same order the items are laid out in
         float angle = Mathf.Atan2(stick.x, stick.y) * Mathf.Rad2Deg;
@@ -174,8 +204,14 @@ public class VerbalCommandMenu : MonoBehaviour
         if (index != selected)
         {
             selected = index;
+            selectedSince = Time.unscaledTime;
+            picked = -1;
             RefreshHighlight();
             Haptics.MenuTick(Hand.Left);
+        }
+        else if (picked < 0 && Time.unscaledTime - selectedSince >= holdToPick)
+        {
+            picked = selected;
         }
     }
 
@@ -212,11 +248,11 @@ public class VerbalCommandMenu : MonoBehaviour
         var canvasGo = new GameObject("VerbalCommandMenu", typeof(Canvas));
         canvasGo.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
         menuRoot = canvasGo.GetComponent<RectTransform>();
-        float size = (radius * 2f + 0.09f) * UnitsPerMeter;
+        float size = (radius * 2f + 0.11f) * UnitsPerMeter;
         menuRoot.sizeDelta = new Vector2(size, size);
         menuRoot.localScale = Vector3.one / UnitsPerMeter;
 
-        Vector2 itemSize = new Vector2(0.085f, 0.03f) * UnitsPerMeter;
+        Vector2 itemSize = new Vector2(0.105f, 0.036f) * UnitsPerMeter;
         itemBackgrounds = new Image[Commands.Length];
 
         for (int i = 0; i < Commands.Length; i++)
@@ -228,6 +264,8 @@ public class VerbalCommandMenu : MonoBehaviour
             var itemGo = new GameObject(Commands[i].ToString(), typeof(RectTransform));
             itemGo.transform.SetParent(menuRoot, false);
             var bg = itemGo.AddComponent<Image>();
+            bg.sprite = VrUi.RoundedSprite();
+            bg.type = Image.Type.Sliced;
             bg.color = itemColor;
             bg.raycastTarget = false;
             bg.rectTransform.sizeDelta = itemSize;
@@ -266,6 +304,6 @@ public class VerbalCommandMenu : MonoBehaviour
         for (int i = 0; i < itemBackgrounds.Length; i++)
             itemBackgrounds[i].color = i == selected ? selectedColor : itemColor;
 
-        centerText.text = selected >= 0 ? VerbalCommands.Spoken(Commands[selected]) : "Tilt the stick to choose";
+        centerText.text = selected >= 0 ? VerbalCommands.Spoken(Commands[selected]) : "Tilt the stick, let go to say it\nY again to cancel";
     }
 }

@@ -24,6 +24,9 @@ public class PrisonerAttack : MonoBehaviour
     [Tooltip("Damage of one blow. The officer has 100 health.")]
     [SerializeField] float damage = 20f;
 
+    [Tooltip("Damage of one knife stab when the scenario arms him")]
+    [SerializeField] float armedDamage = 50f;
+
     // Raised every time the prisoner performs an attack
     public event Action OnAttack;
 
@@ -34,6 +37,8 @@ public class PrisonerAttack : MonoBehaviour
     public bool IsInReach => perception.CanSeePlayer && HorizontalDistanceToPlayer() <= attackRange;
 
     public float AttackRange => attackRange;
+
+    public bool IsArmed { get; private set; }
 
     PrisonerStatusSystem status;
     PrisonerAIMovement movement;
@@ -51,6 +56,12 @@ public class PrisonerAttack : MonoBehaviour
         movement = GetComponent<PrisonerAIMovement>();
         perception = PrisonerPerception.GetOrAdd(gameObject);
         compliance = PrisonerCompliance.GetOrAdd(gameObject);
+    }
+
+    // Set by the scenario: a knife makes every blow far more dangerous
+    public void SetArmed(bool armed)
+    {
+        IsArmed = armed;
     }
 
     void Update()
@@ -124,7 +135,7 @@ public class PrisonerAttack : MonoBehaviour
         Vector3 fist = transform.position + Vector3.up * 1.35f + transform.forward * 0.3f;
         if (playerHealth == null)
             playerHealth = PlayerHealth.GetOrAdd(rig);
-        playerHealth.ReceiveMeleeAttack(fist, name, damage);
+        playerHealth.ReceiveMeleeAttack(fist, name, IsArmed ? armedDamage : damage);
     }
 
     float HorizontalDistanceToPlayer()

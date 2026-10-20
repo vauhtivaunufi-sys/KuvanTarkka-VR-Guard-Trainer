@@ -130,6 +130,13 @@ public class PrisonerCompliance : MonoBehaviour
         }
     }
 
+    // Scenario profile: how worked up he is at the start
+    public void SetStartingAggression(float value)
+    {
+        initialAggression = Mathf.Clamp01(value);
+        Aggression = initialAggression;
+    }
+
     public void ChangeAggression(float delta)
     {
         Aggression = Mathf.Clamp01(Aggression + delta);

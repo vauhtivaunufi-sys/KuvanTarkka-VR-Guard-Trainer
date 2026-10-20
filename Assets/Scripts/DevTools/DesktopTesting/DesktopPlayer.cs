@@ -301,7 +301,7 @@ public class DesktopPlayer : MonoBehaviour
 
     void Move()
     {
-        // The command menu uses WASD while G is held
+        // The command menu uses WASD while it is open
         Vector2 input = LocomotionLock.IsLocked ? Vector2.zero : controls.GetStick(Hand.Left);
         lastMoveInput = input;
         float speed = walkSpeed;
@@ -442,8 +442,8 @@ public class DesktopPlayer : MonoBehaviour
         "Q - left hand: pick up / drop\n" +
         "Left mouse - use item in right hand (taser, spray)\n" +
         "Right mouse - use item in left hand    C (hold) - raise left hand (block with the shield)\n" +
-        "R / T - right A / B     F / G - left X / Y     Tab - left menu\n" +
-        "G (hold) + WASD, release G - verbal command\n" +
+        "R / T - right A / B     F / G - left X / Y     Tab - pause (left menu)\n" +
+        "G - command menu: tilt with WASD, let go to say it, G again cancels\n" +
         "F3 - debug overlays     Esc - free the mouse, click to return";
 
     GUIStyle helpStyle;

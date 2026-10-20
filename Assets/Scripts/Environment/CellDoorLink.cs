@@ -11,6 +11,8 @@ public class CellDoorLink : MonoBehaviour
 
     Door door;
 
+    public PrisonerAIMovement Prisoner => prisoner;
+
     void Awake()
     {
         door = GetComponent<Door>();

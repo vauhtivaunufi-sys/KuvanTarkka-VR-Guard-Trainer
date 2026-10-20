@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb1e848cd1597e40b0144ca8b5196ca, type: 3}
+  m_Name: 01_RefusalToReturn
+  m_EditorClassIdentifier: Assembly-CSharp::ScenarioDefinition
+  order: 1
+  title: Refusal to return to cell
+  difficulty: 0
+  briefing: Evening lock-up on a closed ward. Everyone has been told to return to
+    their cells. One inmate is still out in the corridor and refuses to go back in.
+    He is upset about a cancelled visit and is arguing loudly, but he has not attacked
+    anyone and is not armed.
+  task: Keep a safe distance and talk to him. Calm him down, then have him face the
+    wall. This can be solved with words - using force here is very likely a mistake.
+  forceRules: Words first. Use force only against active resistance and no more than
+    needed. Warn before force when you can. Every use of force is recorded.
+  objective: Get the inmate to comply without force
+  initialAggression: 0.55
+  startsOutOfCell: 1
+  armed: 0
+  sceneName: MainTraining

@@ -5,6 +5,16 @@
 
 ---
 
+## Scenarios and the Main Menu
+
+The game starts in **Assets/Scenes/MainMenu**: pick a scenario, read the briefing, press START. The training scene opens with that scenario.
+- Scenarios are assets in `Assets/Resources/Scenarios` (right-click > Create > KuvanTarkka > Scenario). Briefing, task, objective and the inmate's profile (aggression, out of cell, armed) are edited in the Inspector, no code needed.
+- First time after pulling, or if MainMenu is missing: **Tools > KuvanTarkka > Set Up Scenarios** (creates the 3 default scenarios, the MainMenu scene and the build order; existing files are kept).
+- Pressing Play straight in MainTraining plays the first scenario.
+- In a scenario: tap the left menu button (Tab on keyboard) to pause, restart or go back to the menu.
+
+---
+
 ## Testing Without a Headset (editor only)
 
 **The game is VR only.** Keyboard & mouse exists only so the team can test game logic in the Unity editor without a headset.
@@ -25,8 +35,9 @@ Aim, reach and feel are not VR-accurate here - final checks are always done in t
 | C (hold) | Raising the left arm | Left hand up in front of you - block blows with the shield |
 | R / T | A / B | Right controller buttons |
 | F / G | X / Y | Left controller buttons |
-| G (hold) + WASD, release G | Y (hold) + left stick | Verbal command menu: pick a command, release to say it |
-| Tab | Left menu | Left menu button |
+| G, then WASD and let go | Y, then left stick and let go | Verbal command menu: G / Y opens it, tilt to a command, let go to say it. G / Y again cancels |
+| Tab (tap) | Left menu (tap) | Pause: resume, restart the scenario or go to the main menu |
+| Left mouse on a panel | Trigger at a panel | Press a menu button (aim with the crosshair) |
 | F1 | - | Show / hide controls on screen |
 | F3 | - | Debug overlays on / off |
 | Esc | - | Free the mouse (click the Game view to continue) |

@@ -44,6 +44,13 @@ public class ObjectiveUIController : MonoBehaviour
         SetObjectiveText("Subdue and restrain the inmate");
     }
 
+    // Scenario objective, shown right away instead of waiting for the inmate to wake
+    public void SetObjective(string text)
+    {
+        prisonerSeenActive = true;
+        SetObjectiveText(text);
+    }
+
     // Fades the current text out, swaps it, and fades the new text back in.
     public void SetObjectiveText(string text)
     {

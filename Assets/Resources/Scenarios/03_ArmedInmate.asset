@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb1e848cd1597e40b0144ca8b5196ca, type: 3}
+  m_Name: 03_ArmedInmate
+  m_EditorClassIdentifier: Assembly-CSharp::ScenarioDefinition
+  order: 3
+  title: Armed inmate
+  difficulty: 2
+  briefing: An inmate is out in the corridor holding an improvised knife. He is agitated
+    and will not drop it. A knife can kill in seconds, and his reach is longer than
+    it looks.
+  task: Keep your distance and warn him clearly. If he comes at you, stop him from
+    a distance with the taser, then have him face the wall. Do not let him close
+    the gap.
+  forceRules: Words first. Use force only against active resistance and no more than
+    needed. Warn before force when you can. Every use of force is recorded.
+  objective: Stop the armed inmate safely
+  initialAggression: 0.65
+  startsOutOfCell: 1
+  armed: 1
+  sceneName: MainTraining
