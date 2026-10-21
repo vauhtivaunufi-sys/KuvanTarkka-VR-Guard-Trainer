@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb1e848cd1597e40b0144ca8b5196ca, type: 3}
+  m_Name: 02_AggressiveInmate
+  m_EditorClassIdentifier: Assembly-CSharp::ScenarioDefinition
+  order: 2
+  title: Aggressive inmate
+  difficulty: 1
+  briefing: An inmate has been kicking his cell door and shouting threats at staff
+    for ten minutes. You are sent to deal with him and have to open his cell. Expect
+    him to come straight at you.
+  task: 'Give clear commands and a warning before using force. If he attacks, respond
+    in proportion, then bring him under control: have him face the wall.'
+  forceRules: Words first. Use force only against active resistance and no more than
+    needed. Warn before force when you can. Every use of force is recorded.
+  objective: Bring the aggressive inmate under control
+  initialAggression: 0.8
+  startsOutOfCell: 0
+  armed: 0
+  sceneName: MainTraining
