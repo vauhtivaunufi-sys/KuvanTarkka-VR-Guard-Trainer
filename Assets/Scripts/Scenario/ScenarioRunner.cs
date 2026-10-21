@@ -1,11 +1,20 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-// Runs the chosen scenario in a training scene: inmate profile, briefing, objective, result and pause
-// Added automatically to every scene with inmates, nothing to set up by hand
+// Runs the chosen scenario in the training scene: inmate profile, briefing, objective, result and pause
 public class ScenarioRunner : MonoBehaviour
 {
+    [Tooltip("Played when Play is pressed straight in this scene, without the main menu")]
+    [SerializeField] ScenarioDefinition defaultScenario;
+
+    [Tooltip("Inmates the scenario sets up and watches")]
+    [SerializeField] PrisonerStatusSystem[] inmates;
+
+    [Tooltip("Cell doors opened at the start when the scenario has the inmate out of his cell")]
+    [SerializeField] Door[] cellDoors;
+
+    [SerializeField] ObjectiveUIController objectiveUI;
+
     [Tooltip("Seconds after the inmate is under control before the result panel shows")]
     [SerializeField] float resultDelay = 3f;
 
@@ -13,8 +22,6 @@ public class ScenarioRunner : MonoBehaviour
     [SerializeField] float pauseTapTime = 0.4f;
 
     ScenarioDefinition scenario;
-    PrisonerStatusSystem[] prisoners;
-    ObjectiveUIController objectiveUI;
     PlayerHealth officerHealth;
     RectTransform briefingPanel;
     RectTransform pausePanel;
@@ -26,43 +33,15 @@ public class ScenarioRunner : MonoBehaviour
 
     bool OfficerDown => officerHealth != null && officerHealth.IsIncapacitated;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    static void ResetStatics()
-    {
-        SceneManager.sceneLoaded -= HandleSceneLoaded;
-    }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    static void Init()
-    {
-        SceneManager.sceneLoaded += HandleSceneLoaded;
-        CreateIfNeeded();
-    }
-
-    static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        CreateIfNeeded();
-    }
-
-    // A scene with inmates is a training scene
-    static void CreateIfNeeded()
-    {
-        if (FindAnyObjectByType<ScenarioRunner>() != null || FindAnyObjectByType<PrisonerStatusSystem>() == null)
-            return;
-        new GameObject("ScenarioRunner").AddComponent<ScenarioRunner>();
-    }
-
     void Start()
     {
-        prisoners = FindObjectsByType<PrisonerStatusSystem>(FindObjectsSortMode.None);
-        objectiveUI = FindAnyObjectByType<ObjectiveUIController>();
         if (PlayerRig.Instance != null)
             officerHealth = PlayerRig.Instance.GetComponent<PlayerHealth>();
 
-        scenario = ScenarioSession.CurrentOrDefault();
+        scenario = ScenarioSession.Current != null ? ScenarioSession.Current : defaultScenario;
         if (scenario == null)
         {
-            Debug.LogWarning("No scenario assets - run Tools > KuvanTarkka > Set Up Scenarios. Playing without a scenario");
+            Debug.LogWarning("No scenario: Default Scenario is empty on ScenarioRunner, playing without one", this);
             BeginScenario();
             return;
         }
@@ -85,12 +64,12 @@ public class ScenarioRunner : MonoBehaviour
         if (!running || finished || scenario == null || OfficerDown)
             return;
 
-        foreach (PrisonerStatusSystem prisoner in prisoners)
+        foreach (PrisonerStatusSystem inmate in inmates)
         {
             // Facing the wall, cuffed or secured all count as under control
-            if (prisoner != null && (prisoner.CurrentRestraint != PrisonerRestraint.Free || prisoner.IsDetained))
+            if (inmate != null && (inmate.CurrentRestraint != PrisonerRestraint.Free || inmate.IsDetained))
             {
-                Finish(prisoner);
+                Finish(inmate);
                 break;
             }
         }
@@ -98,17 +77,18 @@ public class ScenarioRunner : MonoBehaviour
 
     void ApplyProfile()
     {
-        foreach (PrisonerStatusSystem prisoner in prisoners)
+        foreach (PrisonerStatusSystem inmate in inmates)
         {
-            PrisonerCompliance.GetOrAdd(prisoner.gameObject).SetStartingAggression(scenario.InitialAggression);
+            if (inmate == null)
+                continue;
 
-            if (scenario.Armed)
-            {
-                PrisonerAttack attack = prisoner.GetComponent<PrisonerAttack>();
-                if (attack != null)
-                    attack.SetArmed(true);
-                AttachKnife(prisoner.gameObject);
-            }
+            PrisonerCompliance compliance = inmate.GetComponent<PrisonerCompliance>();
+            if (compliance != null)
+                compliance.SetStartingAggression(scenario.InitialAggression);
+
+            PrisonerAttack attack = inmate.GetComponent<PrisonerAttack>();
+            if (attack != null)
+                attack.SetArmed(scenario.Armed);
         }
     }
 
@@ -172,25 +152,18 @@ public class ScenarioRunner : MonoBehaviour
     // Opens the cell doors, the inmates walk out on their own
     void ReleaseInmates()
     {
-        CellDoorLink[] links = FindObjectsByType<CellDoorLink>(FindObjectsSortMode.None);
-
-        foreach (PrisonerStatusSystem prisoner in prisoners)
+        foreach (Door door in cellDoors)
         {
-            PrisonerAIMovement movement = prisoner.GetComponent<PrisonerAIMovement>();
-            if (movement == null)
-                continue;
-
-            Door door = null;
-            foreach (CellDoorLink link in links)
-            {
-                if (link.Prisoner == movement)
-                    door = link.GetComponent<Door>();
-            }
-
             if (door != null)
                 door.SetOpen(true);
-            // The door link may be switched off, so wake him directly too
-            movement.Activate();
+        }
+
+        // Woken directly too, a cell door link may be switched off
+        foreach (PrisonerStatusSystem inmate in inmates)
+        {
+            PrisonerAIMovement movement = inmate != null ? inmate.GetComponent<PrisonerAIMovement>() : null;
+            if (movement != null)
+                movement.Activate();
         }
     }
 
@@ -252,26 +225,5 @@ public class ScenarioRunner : MonoBehaviour
             Destroy(pausePanel.gameObject);
         pausePanel = null;
         Time.timeScale = 1f;
-    }
-
-    // Placeholder blade in his right hand until a real model exists
-    static void AttachKnife(GameObject prisoner)
-    {
-        Animator animator = prisoner.GetComponentInChildren<Animator>();
-        Transform hand = animator != null && animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightHand) : null;
-
-        GameObject knife = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        knife.name = "Improvised Knife";
-        Destroy(knife.GetComponent<Collider>());
-        knife.GetComponent<Renderer>().material.color = new Color(0.72f, 0.74f, 0.78f);
-
-        Transform parent = hand != null ? hand : prisoner.transform;
-        Vector3 offset = hand != null ? new Vector3(0f, 0.09f, 0.03f) : new Vector3(0.3f, 1f, 0.25f);
-        knife.transform.SetParent(parent, false);
-
-        // Sizes in metres whatever scale the bone carries
-        Vector3 s = parent.lossyScale;
-        knife.transform.localPosition = new Vector3(offset.x / s.x, offset.y / s.y, offset.z / s.z);
-        knife.transform.localScale = new Vector3(0.012f / s.x, 0.16f / s.y, 0.03f / s.z);
     }
 }

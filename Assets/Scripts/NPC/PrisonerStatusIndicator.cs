@@ -3,6 +3,8 @@ using UnityEngine;
 
 // Debug label above the prisoner, hidden by the debug switch (TrainingDebug)
 [RequireComponent(typeof(PrisonerStatusSystem))]
+[RequireComponent(typeof(PrisonerPerception))]
+[RequireComponent(typeof(PrisonerCompliance))]
 public class PrisonerStatusIndicator : MonoBehaviour
 {
     [Tooltip("Gap above the top of the collider, m")]
@@ -29,8 +31,8 @@ public class PrisonerStatusIndicator : MonoBehaviour
     {
         status = GetComponent<PrisonerStatusSystem>();
         movement = GetComponent<PrisonerAIMovement>();
-        perception = PrisonerPerception.GetOrAdd(gameObject);
-        compliance = PrisonerCompliance.GetOrAdd(gameObject);
+        perception = GetComponent<PrisonerPerception>();
+        compliance = GetComponent<PrisonerCompliance>();
         bodyCollider = GetComponent<Collider>();
         CreateLabel();
     }
@@ -86,6 +88,7 @@ public class PrisonerStatusIndicator : MonoBehaviour
     {
         // Standalone object, so the prisoner's scale doesn't distort the text
         var labelObject = new GameObject($"{name} StatusLabel", typeof(RectTransform));
+        RuntimeRoot.Adopt(labelObject);
         label = labelObject.AddComponent<TextMeshPro>();
         label.rectTransform.pivot = new Vector2(0.5f, 0f);
         label.rectTransform.sizeDelta = new Vector2(2f, 0.5f);
@@ -137,6 +140,9 @@ public class PrisonerStatusIndicator : MonoBehaviour
 
             case PrisonerConditional.Detained:
                 return "<color=#4CE06A>DETAINED</color>";
+
+            case PrisonerConditional.Staggered:
+                return "<color=#FF9A2E>STAGGERED</color>";
         }
 
         switch (status.CurrentRestraint)

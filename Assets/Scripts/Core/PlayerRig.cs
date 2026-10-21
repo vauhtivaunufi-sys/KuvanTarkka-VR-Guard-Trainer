@@ -2,8 +2,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-// Single point of truth for "where is the player": head, feet and facing.
-// Lives on the XR Origin. Every system that used to look up Camera.main on its own (prisoner AI, attack, labels) asks this instead
+// Where the player is: head, feet and facing, asked by every system instead of Camera.main
 
 [DisallowMultipleComponent]
 public class PlayerRig : MonoBehaviour
@@ -14,13 +13,10 @@ public class PlayerRig : MonoBehaviour
     [Tooltip("Approximate height of the chest below the eyes, in meters. Used as the aim point for attacks and line-of-sight checks.")]
     [SerializeField] float chestBelowHead = 0.35f;
 
-    [Tooltip("Health and the command menu, off in the main menu")]
-    [SerializeField] bool officerGear = true;
-
     static PlayerRig instance;
     static float nextSearchTime;
 
-    // The rig in the scene. If nobody added the component, it attaches itself to the XR Origin on first use, so older scenes keep working without manual setup
+    // The rig in the scene, looked up when asked before its Awake ran
     public static PlayerRig Instance
     {
         get
@@ -29,18 +25,12 @@ public class PlayerRig : MonoBehaviour
             {
                 nextSearchTime = Time.unscaledTime + 1f;
                 instance = FindFirstObjectByType<PlayerRig>();
-                if (instance == null)
-                {
-                    XROrigin origin = FindFirstObjectByType<XROrigin>();
-                    if (origin != null)
-                        instance = origin.gameObject.AddComponent<PlayerRig>();
-                }
             }
             return instance;
         }
     }
 
-    // Head (HMD) transform. Never null while a camera exists.
+    // Head (HMD) transform. Never null while a camera exists
     public Transform Head
     {
         get
@@ -88,18 +78,6 @@ public class PlayerRig : MonoBehaviour
                 head = origin.Camera.transform;
         }
 
-        // The officer always has health (and with it the red bar and the damage overlay) from the first frame, not only once a prisoner first swings at him.
-        if (officerGear && GetComponent<PlayerHealth>() == null)
-            gameObject.AddComponent<PlayerHealth>();
-
-        // Every officer can give orders
-        if (officerGear && GetComponent<VerbalCommandMenu>() == null)
-            gameObject.AddComponent<VerbalCommandMenu>();
-
-        // Points at menus and panels with the controllers
-        if (GetComponent<VrPointer>() == null)
-            gameObject.AddComponent<VrPointer>();
-
         if (instance != null && instance != this)
         {
             Debug.LogWarning("More than one PlayerRig in the scene - only the first one is used.", this);
@@ -141,7 +119,7 @@ public class PlayerRig : MonoBehaviour
         return null;
     }
 
-    // True when the transform is part of the XR rig hierarchy (head, hands, belt). Held equipment is not reparented by XRI, so callers that also need to ignore held items check for GrabbableWeapon separately
+    // True for anything in the XR rig hierarchy, held items are not reparented so callers check GrabbableWeapon too
     public bool IsPartOfPlayer(Transform t)
     {
         return t != null && t.IsChildOf(transform);

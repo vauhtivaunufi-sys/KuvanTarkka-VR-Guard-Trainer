@@ -2,9 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Radial menu of verbal commands: press left Y to open, tilt the left stick to pick, let the stick go to say it
-// Y and the stick are both under the thumb, so nothing has to be held while tilting
-// Desktop test mode: press G, pick with WASD, let the keys go
+// Radial command menu: tap left Y, tilt the stick, let go to say it (desktop: G and WASD)
 [RequireComponent(typeof(PlayerRig))]
 public class VerbalCommandMenu : MonoBehaviour
 {
@@ -136,12 +134,8 @@ public class VerbalCommandMenu : MonoBehaviour
     // A held item that needs left Y itself wins over the menu
     bool LeftHandItemUsesY()
     {
-        foreach (GrabbableWeapon item in FindObjectsByType<GrabbableWeapon>(FindObjectsSortMode.None))
-        {
-            if (item.HoldingHand == Hand.Left && item.UsesSecondaryButton)
-                return true;
-        }
-        return false;
+        GrabbableWeapon item = GrabbableWeapon.HeldIn(Hand.Left);
+        return item != null && item.UsesSecondaryButton;
     }
 
     void Open()
@@ -236,8 +230,9 @@ public class VerbalCommandMenu : MonoBehaviour
             // Shouting also gives away where the officer is
             prisoner.Hear(mouth, fromPlayer: true);
 
-            PrisonerCompliance compliance = PrisonerCompliance.GetOrAdd(prisoner.gameObject);
-            compliance.ReceiveCommand(command, Vector3.Distance(prisoner.EyePosition, mouth));
+            PrisonerCompliance compliance = prisoner.GetComponent<PrisonerCompliance>();
+            if (compliance != null)
+                compliance.ReceiveCommand(command, Vector3.Distance(prisoner.EyePosition, mouth));
         }
     }
 

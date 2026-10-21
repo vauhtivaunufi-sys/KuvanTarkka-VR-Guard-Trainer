@@ -7,14 +7,10 @@ public enum ScenarioDifficulty
     Advanced
 }
 
-// One training scenario: what the trainee is told and how the inmate behaves
-// Assets live in Resources/Scenarios, the menu lists them automatically
+// One training scenario: briefing texts and inmate profile, the menu lists it through ScenarioCatalog
 [CreateAssetMenu(menuName = "KuvanTarkka/Scenario", fileName = "Scenario")]
 public class ScenarioDefinition : ScriptableObject
 {
-    [Tooltip("Position in the menu, lower first")]
-    [SerializeField] int order;
-
     [SerializeField] string title = "New scenario";
 
     [SerializeField] ScenarioDifficulty difficulty;
@@ -49,7 +45,6 @@ public class ScenarioDefinition : ScriptableObject
     [Tooltip("Scene the scenario plays in, must be in Build Settings")]
     [SerializeField] string sceneName = "MainTraining";
 
-    public int Order => order;
     public string Title => title;
     public ScenarioDifficulty Difficulty => difficulty;
     public string Briefing => briefing;

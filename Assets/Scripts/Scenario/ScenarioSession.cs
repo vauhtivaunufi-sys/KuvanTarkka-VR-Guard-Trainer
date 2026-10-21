@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -6,7 +5,6 @@ using UnityEngine.SceneManagement;
 public static class ScenarioSession
 {
     public const string MenuScene = "MainMenu";
-    const string ResourcesFolder = "Scenarios";
 
     public static ScenarioDefinition Current { get; private set; }
 
@@ -15,29 +13,6 @@ public static class ScenarioSession
     static void ResetStatics()
     {
         Current = null;
-    }
-
-    // Every scenario asset in Resources/Scenarios, in menu order
-    public static ScenarioDefinition[] LoadAll()
-    {
-        ScenarioDefinition[] all = Resources.LoadAll<ScenarioDefinition>(ResourcesFolder);
-        Array.Sort(all, (a, b) => a.Order.CompareTo(b.Order));
-        return all;
-    }
-
-    // Pressing Play straight in the training scene: the first scenario stands in for the menu choice
-    public static ScenarioDefinition CurrentOrDefault()
-    {
-        if (Current == null)
-        {
-            ScenarioDefinition[] all = LoadAll();
-            if (all.Length > 0)
-            {
-                Current = all[0];
-                Debug.Log($"No scenario chosen in the menu, playing '{Current.Title}'");
-            }
-        }
-        return Current;
     }
 
     public static void Begin(ScenarioDefinition scenario)
@@ -64,7 +39,7 @@ public static class ScenarioSession
 
         if (!Application.CanStreamedLevelBeLoaded(scene))
         {
-            Debug.LogError($"Scene '{scene}' is not in Build Settings - run Tools > KuvanTarkka > Set Up Scenarios");
+            Debug.LogError($"Scene '{scene}' is not in Build Settings, add it in File > Build Profiles");
             return;
         }
         SceneManager.LoadScene(scene);

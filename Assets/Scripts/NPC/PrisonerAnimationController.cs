@@ -2,9 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 
-// Drives the prisoner's Animator from the gameplay state: conditional status (Tased/Sprayed/Detained), attacks and NavMeshAgent movement.
-// The controller holds bare states with no transitions - this script picks the state and cross-fades to it, so all switching logic lives in one place.
-// The Tased clip (fall, lie, get up) is longer than the stun, so playback pauses on the lying section and the get-up tail is timed to finish together with the stun.
+// Picks the Animator state from gameplay state and cross-fades to it, the controller has no transitions
 
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerAnimationController : MonoBehaviour
@@ -39,7 +37,6 @@ public class PrisonerAnimationController : MonoBehaviour
     PrisonerAIMovement movement;
     PrisonerAttack attack;
     NavMeshAgent agent;
-    float effectEndTime;
     float tasedStartTime;
     float tasedSpeed = 1f;
     TasedPhase tasedPhase;
@@ -53,8 +50,7 @@ public class PrisonerAnimationController : MonoBehaviour
         attack = GetComponent<PrisonerAttack>();
         agent = GetComponent<NavMeshAgent>();
 
-        // The NavMeshAgent moves the transform; root motion on top of it
-        // would make the character drift away from the agent.
+        // The agent moves the transform, root motion would make him drift
         if (animator != null)
             animator.applyRootMotion = false;
     }
@@ -62,6 +58,7 @@ public class PrisonerAnimationController : MonoBehaviour
     void OnEnable()
     {
         status.OnConditionalStatusChanged += HandleConditionalChanged;
+        status.OnEffectApplied += HandleEffectApplied;
         if (attack != null)
             attack.OnAttack += HandleAttack;
     }
@@ -69,6 +66,7 @@ public class PrisonerAnimationController : MonoBehaviour
     void OnDisable()
     {
         status.OnConditionalStatusChanged -= HandleConditionalChanged;
+        status.OnEffectApplied -= HandleEffectApplied;
         if (attack != null)
             attack.OnAttack -= HandleAttack;
     }
@@ -99,16 +97,11 @@ public class PrisonerAnimationController : MonoBehaviour
         switch (conditional)
         {
             case PrisonerConditional.Electrocuted:
-                effectEndTime = Time.time + status.ElectrocutedDuration;
-                // If the stun is shorter than the fall plus the get-up at normal speed, play both faster so they still fit.
+                // If the stun is shorter than the fall plus the get-up at normal speed, play both faster so they still fit
                 tasedSpeed = Mathf.Max(1f, (tasedLieTime + tasedGetUpTime) / status.ElectrocutedDuration);
                 tasedStartTime = Time.time;
                 tasedPhase = TasedPhase.Falling;
                 animator.SetFloat("TasedSpeed", tasedSpeed);
-                break;
-
-            case PrisonerConditional.InPain:
-                effectEndTime = Time.time + status.InPainDuration;
                 break;
 
             default:
@@ -118,8 +111,19 @@ public class PrisonerAnimationController : MonoBehaviour
         }
     }
 
-    // Scales the walk/chase cycles to the actual movement speed so the feet
-    // keep up with the ground instead of sliding.
+    // Taser cycled again while he was already getting up: down he goes again
+    void HandleEffectApplied(PrisonerConditional effect, float duration)
+    {
+        if (animator == null || effect != PrisonerConditional.Electrocuted || tasedPhase != TasedPhase.GettingUp)
+            return;
+
+        tasedStartTime = Time.time;
+        tasedPhase = TasedPhase.Falling;
+        animator.SetFloat("TasedSpeed", tasedSpeed);
+        animator.CrossFadeInFixedTime("Tased", crossFadeDuration, 0, 0f);
+    }
+
+    // Scales walk and chase playback to the real speed so the feet don't slide
     void UpdateLocomotionSpeed()
     {
         float speed = agent != null && agent.enabled ? agent.velocity.magnitude : 0f;
@@ -136,7 +140,8 @@ public class PrisonerAnimationController : MonoBehaviour
             tasedPhase = TasedPhase.Lying;
         }
 
-        bool getUpDue = effectEndTime - Time.time <= tasedGetUpTime / tasedSpeed;
+        // Read every frame: another taser cycle moves the end later
+        bool getUpDue = status.EffectEndTime - Time.time <= tasedGetUpTime / tasedSpeed;
         if (tasedPhase != TasedPhase.None && tasedPhase != TasedPhase.GettingUp && getUpDue)
         {
             animator.SetFloat("TasedSpeed", tasedSpeed);
@@ -150,7 +155,7 @@ public class PrisonerAnimationController : MonoBehaviour
         if (animator == null)
             return;
 
-        // Restart from the beginning even if the previous attack is still playing.
+        // Restart from the beginning even if the previous attack is still playing
         currentState = "Attack";
         animator.CrossFadeInFixedTime("Attack", crossFadeDuration, 0, 0f);
     }
@@ -165,6 +170,9 @@ public class PrisonerAnimationController : MonoBehaviour
                 return "Tased";
             case PrisonerConditional.InPain:
                 return "Sprayed";
+            // No dedicated clip yet, the scared flinch reads as a jolt of pain
+            case PrisonerConditional.Staggered:
+                return "Scared";
         }
 
         // Obeyed "face the wall" and got there: hands on the wall
@@ -176,8 +184,7 @@ public class PrisonerAnimationController : MonoBehaviour
             return "Attack";
 
         float speed = agent != null && agent.enabled ? agent.velocity.magnitude : 0f;
-        // Hysteresis: a lower exit threshold stops the walk/idle animation
-        // from flickering while the agent brakes near a patrol point.
+        // Lower exit threshold stops walk and idle flickering while the agent brakes
         bool isMoving = speed > (wasMoving ? movingSpeedThreshold * 0.5f : movingSpeedThreshold);
         wasMoving = isMoving;
         if (isMoving)

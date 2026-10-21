@@ -1,7 +1,7 @@
 using UnityEngine;
 
 
-// Wakes a specific prisoner when their cell door opens. Attach next to a Door with isCellDoor checked; only makes sense on cell doors, so it disables itself on any other door.
+// Wakes this cell's prisoner when the door opens, only on cell doors
 
 [RequireComponent(typeof(Door))]
 public class CellDoorLink : MonoBehaviour

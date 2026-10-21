@@ -1,7 +1,6 @@
 using UnityEngine;
 
-// Scene-side home of the debug switch (see TrainingDebug). The checkbox is the source of truth when the scene loads,
-// so a build made with it unchecked starts clean; it can still be flipped live in the headset.
+// Scene checkbox for the debug switch, read on load so a build made with it off starts clean
 [DisallowMultipleComponent]
 public class TrainingDebugSettings : MonoBehaviour
 {
@@ -34,7 +33,7 @@ public class TrainingDebugSettings : MonoBehaviour
 
     void OnValidate()
     {
-        // Makes the inspector checkbox work live in Play mode too.
+        // Makes the inspector checkbox work live in Play mode too
         if (Application.isPlaying)
             TrainingDebug.Enabled = showDebugOverlays;
     }

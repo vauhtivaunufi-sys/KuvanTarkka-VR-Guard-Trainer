@@ -26,9 +26,7 @@ public enum ControllerAxis
     Grip
 }
 
-// Lets something other than the real controllers answer ControllerInput's questions.
-// The game itself never sets this. It exists only so editor test tools (DevTools/DesktopTesting) and, later, automated tests
-// can drive the game without a headset. In builds it is always null = real controllers only.
+// Stand-in for the real controllers, set only by editor test tools, always null in builds
 public interface IControllerInputSource
 {
     bool GetButton(Hand hand, ControllerButton button);
@@ -38,12 +36,7 @@ public interface IControllerInputSource
     Vector2 GetStick(Hand hand);
 }
 
-// One place to read controller buttons for the game's own controls (taser safety, command menu, debug toggle, hand poses).
-//
-// Reads through the Input System with usage-based bindings ("<XRController>{LeftHand}/{PrimaryButton}"),
-// so the same code works for any OpenXR controller, not only Quest.
-// Game code must read buttons ONLY through this class - then an editor test tool can stand in for the controllers
-// (see Override) without the game knowing anything about it.
+// One place to read controller buttons, game code reads them only here so the desktop test tool can stand in
 public static class ControllerInput
 {
     static readonly string[] ButtonUsages =
@@ -62,10 +55,10 @@ public static class ControllerInput
     static InputAction[,] axes;
     static InputAction[] sticks;
 
-    // Test-only stand-in for the controllers. null (always, in builds) = read the real controllers.
+    // Test-only stand-in for the controllers. null (always, in builds) = read the real controllers
     public static IControllerInputSource Override { get; set; }
 
-    // Statics survive between Play sessions when domain reload is off - never start a session with a stale override.
+    // Statics survive between Play sessions when domain reload is off - never start a session with a stale override
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetOverride()
     {
@@ -81,7 +74,7 @@ public static class ControllerInput
     public static bool GetButtonUp(Hand hand, ControllerButton button) =>
         Override != null ? Override.GetButtonUp(hand, button) : Button(hand, button).WasReleasedThisFrame();
 
-    // Analog trigger / grip, 0..1.
+    // Analog trigger / grip, 0..1
     public static float GetAxis(Hand hand, ControllerAxis axis)
     {
         if (Override != null)
@@ -100,7 +93,7 @@ public static class ControllerInput
         return sticks[(int)hand].ReadValue<Vector2>();
     }
 
-    // Short vibration on one controller. amplitude 0..1, duration in seconds. Does nothing without a real controller.
+    // Short vibration on one controller. amplitude 0..1, duration in seconds. Does nothing without a real controller
     public static void Haptic(Hand hand, float amplitude, float duration)
     {
         XRInputDevice device = XRInputDevices.GetDeviceAtXRNode(hand == Hand.Left ? XRNode.LeftHand : XRNode.RightHand);

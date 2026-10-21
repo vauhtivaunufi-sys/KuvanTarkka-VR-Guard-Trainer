@@ -1,12 +1,6 @@
 using UnityEditor;
 
-// Tools > KuvanTarkka > Desktop Testing - whether pressing Play in the editor uses the headset or the keyboard & mouse
-// test tool (DevTools/DesktopTesting). The game is VR only; this is for testing logic without a headset.
-// Saved per computer, so everyone picks their own and nothing changes in the project or in git.
-//   Auto                - headset if one is connected and running (Quest Link), otherwise keyboard & mouse.
-//   Keyboard and Mouse  - always the test tool, even with a headset plugged in.
-//   Headset Only        - never the test tool.
-// Has no effect on builds: the test tool is not compiled into them.
+// Tools > KuvanTarkka > Desktop Testing: Auto, Keyboard and Mouse or Headset Only, saved per computer, no effect on builds
 static class KeyboardMouseModeMenu
 {
     const string Root = "Tools/KuvanTarkka/Desktop Testing (editor only)/";
@@ -23,7 +17,7 @@ static class KeyboardMouseModeMenu
     [MenuItem(HeadsetPath, priority = 3)]
     static void SetHeadset() => Set(DesktopMode.Setting.Headset);
 
-    // Validate functions run when the menu opens - used here only to draw the checkmark next to the current choice.
+    // Validate functions run when the menu opens - used here only to draw the checkmark next to the current choice
     [MenuItem(AutoPath, true)]
     static bool ValidateAuto() => Check(AutoPath, DesktopMode.Setting.Auto);
 

@@ -5,9 +5,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 
-// Push/pull door that swings open on interaction. Works as a single door on
-// its own, or as one leaf of a double door when paired with otherLeaf - interacting with either leaf then swings both open together.
-// Adds its own collider automatically if the door model doesn't have one, since XRSimpleInteractable can't be interacted with otherwise.
+// Door that swings open when used, alone or as one leaf of a double door with otherLeaf
 
 [RequireComponent(typeof(XRSimpleInteractable))]
 public class Door : MonoBehaviour
@@ -45,9 +43,7 @@ public class Door : MonoBehaviour
         }
         else if (!hinge.IsChildOf(transform))
         {
-            // This exact mistake previously sent the player's own rig
-            // spinning instead of the door - fail loud instead of silently
-            // rotating whatever Hinge happens to point at.
+            // Fail loud, a wrong Hinge once spun the player's rig instead of the door
             Debug.LogError($"Door '{name}': Hinge is set to '{hinge.name}', which is not part of this door. Fix the Hinge field - falling back to this door's own transform for now.", this);
             hinge = transform;
         }
@@ -111,10 +107,7 @@ public class Door : MonoBehaviour
             OnDoorOpened?.Invoke();
     }
 
-    // XRSimpleInteractable can only be interacted with through a collider; the
-    // door model itself (an FBX import) usually doesn't have one, so add a
-    // box sized to its visible geometry rather than relying on someone to
-    // remember to add one by hand.
+    // XRSimpleInteractable needs a collider and FBX doors usually have none, so add a box fitted to the mesh
     void EnsureCollider()
     {
         if (GetComponentInChildren<Collider>() != null)

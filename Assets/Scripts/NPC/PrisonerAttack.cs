@@ -1,9 +1,10 @@
 using System;
 using UnityEngine;
 
-// Prisoner's punch: swings only when free, wants to fight, sees the officer and has him in reach
-// The blow is resolved when it lands, so stepping back or raising the shield in time avoids it
+// Punch: only when free, hostile, seeing the officer and in reach, resolved when it lands so stepping back avoids it
 [RequireComponent(typeof(PrisonerStatusSystem))]
+[RequireComponent(typeof(PrisonerPerception))]
+[RequireComponent(typeof(PrisonerCompliance))]
 public class PrisonerAttack : MonoBehaviour
 {
     [Tooltip("Horizontal distance to the player at which the prisoner attacks, in meters.")]
@@ -26,6 +27,9 @@ public class PrisonerAttack : MonoBehaviour
 
     [Tooltip("Damage of one knife stab when the scenario arms him")]
     [SerializeField] float armedDamage = 50f;
+
+    [Tooltip("Knife placed in his hand inside the prefab, hidden until a scenario arms him")]
+    [SerializeField] GameObject weapon;
 
     // Raised every time the prisoner performs an attack
     public event Action OnAttack;
@@ -54,14 +58,21 @@ public class PrisonerAttack : MonoBehaviour
     {
         status = GetComponent<PrisonerStatusSystem>();
         movement = GetComponent<PrisonerAIMovement>();
-        perception = PrisonerPerception.GetOrAdd(gameObject);
-        compliance = PrisonerCompliance.GetOrAdd(gameObject);
+        perception = GetComponent<PrisonerPerception>();
+        compliance = GetComponent<PrisonerCompliance>();
+        // Visible in the prefab for placing, hidden in play until armed
+        if (weapon != null)
+            weapon.SetActive(false);
     }
 
     // Set by the scenario: a knife makes every blow far more dangerous
     public void SetArmed(bool armed)
     {
         IsArmed = armed;
+        if (weapon != null)
+            weapon.SetActive(armed);
+        else if (armed)
+            Debug.LogWarning($"{name} is armed but Weapon is empty on PrisonerAttack, no knife in his hand", this);
     }
 
     void Update()
@@ -84,17 +95,20 @@ public class PrisonerAttack : MonoBehaviour
         if (rig == null)
             return;
 
+        if (playerHealth == null)
+            playerHealth = rig.GetComponent<PlayerHealth>();
+        // No health on the rig or the officer already down: nothing to hit
+        if (playerHealth == null || playerHealth.IsIncapacitated)
+        {
+            CancelSwing();
+            return;
+        }
+
         if (hitPending && Time.time >= pendingHitTime)
         {
             hitPending = false;
             ResolveHit(rig);
         }
-
-        if (playerHealth == null)
-            playerHealth = PlayerHealth.GetOrAdd(rig);
-        // Officer already down: stop hitting him
-        if (playerHealth.IsIncapacitated)
-            return;
 
         if (IsAttacking || Time.time - lastAttackTime < attackCooldown)
             return;
@@ -133,8 +147,6 @@ public class PrisonerAttack : MonoBehaviour
 
         // Fist at roughly shoulder height
         Vector3 fist = transform.position + Vector3.up * 1.35f + transform.forward * 0.3f;
-        if (playerHealth == null)
-            playerHealth = PlayerHealth.GetOrAdd(rig);
         playerHealth.ReceiveMeleeAttack(fist, name, IsArmed ? armedDamage : damage);
     }
 

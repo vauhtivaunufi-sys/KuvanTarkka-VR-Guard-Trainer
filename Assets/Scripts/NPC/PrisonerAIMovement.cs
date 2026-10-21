@@ -4,6 +4,8 @@ using UnityEngine.AI;
 // Owns the prisoner's NavMeshAgent: every frame picks one mode, other scripts ask through Command* methods
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(PrisonerStatusSystem))]
+[RequireComponent(typeof(PrisonerPerception))]
+[RequireComponent(typeof(PrisonerCompliance))]
 public class PrisonerAIMovement : MonoBehaviour
 {
     // In priority order, the first that fits wins
@@ -85,8 +87,8 @@ public class PrisonerAIMovement : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         status = GetComponent<PrisonerStatusSystem>();
-        perception = PrisonerPerception.GetOrAdd(gameObject);
-        compliance = PrisonerCompliance.GetOrAdd(gameObject);
+        perception = GetComponent<PrisonerPerception>();
+        compliance = GetComponent<PrisonerCompliance>();
         attack = GetComponent<PrisonerAttack>();
         // Asleep until Activate(), e.g. CellDoorLink when his cell door opens
         agent.enabled = false;

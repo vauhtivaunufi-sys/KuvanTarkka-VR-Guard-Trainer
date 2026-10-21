@@ -22,6 +22,7 @@ public static class VrUi
     public static RectTransform CreatePanel(string name, Vector2 sizeMm)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(Canvas));
+        RuntimeRoot.Adopt(go);
         go.layer = UiLayer;
         go.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
         var root = (RectTransform)go.transform;

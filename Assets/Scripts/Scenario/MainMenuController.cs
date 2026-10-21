@@ -4,6 +4,9 @@ using UnityEngine;
 // Main menu: pick a scenario on the left, read its briefing on the right, press START
 public class MainMenuController : MonoBehaviour
 {
+    [Tooltip("Scenarios shown in the menu, in this order")]
+    [SerializeField] ScenarioCatalog catalog;
+
     [Tooltip("Distance from the player's start to the menu, m")]
     [SerializeField] float distance = 2f;
 
@@ -24,12 +27,29 @@ public class MainMenuController : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
-        scenarios = ScenarioSession.LoadAll();
+        scenarios = LoadScenarios();
         Build();
         Place();
 
         if (scenarios.Length > 0)
             Select(0);
+    }
+
+    ScenarioDefinition[] LoadScenarios()
+    {
+        if (catalog == null)
+        {
+            Debug.LogWarning("Scenario Catalog is empty on MainMenuController, the menu has no scenarios", this);
+            return new ScenarioDefinition[0];
+        }
+
+        var list = new System.Collections.Generic.List<ScenarioDefinition>();
+        foreach (ScenarioDefinition s in catalog.Scenarios)
+        {
+            if (s != null)
+                list.Add(s);
+        }
+        return list.ToArray();
     }
 
     void Build()
@@ -49,9 +69,13 @@ public class MainMenuController : MonoBehaviour
         }
 
         if (scenarios.Length == 0)
-            VrUi.Text(panel, "No scenarios yet.\nIn Unity: Tools > KuvanTarkka > Set Up Scenarios", 50f, 196f, 470f, 200f, 24f, color: VrUi.AccentColor);
+            VrUi.Text(panel, "No scenarios.\nSet the Scenario Catalog on MainMenuController", 50f, 196f, 470f, 200f, 24f, color: VrUi.AccentColor);
 
         VrUi.Button(panel, "Exit", 50f, 770f, 200f, 62f, 24f, Quit);
+
+        // CC BY models must credit their authors where users see it
+        VrUi.Text(panel, "3D models: TASER 7 & holster by Javier Clemente Garcia, Dirty Shiv by DrewA (CC BY 4.0, sketchfab.com)",
+            270f, 790f, 280f, 60f, 13f, color: VrUi.MutedColor);
 
         VrUi.Card(panel, 560f, 160f, 890f, 670f);
         titleText = VrUi.Text(panel, "", 600f, 186f, 820f, 56f, 40f, bold: true);

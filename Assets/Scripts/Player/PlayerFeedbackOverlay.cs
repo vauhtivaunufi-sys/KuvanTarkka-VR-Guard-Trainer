@@ -2,13 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Head-locked feedback for the officer, built at runtime on a small world-space canvas in front of the HMD camera
-// (screen-space overlays don't render in XR):
-//   - red flash when hit
-//   - orange haze + watery-eye flicker when the officer contaminates himself with OC spray
-//   - fade to black (scenario end / restart)
-//   - one-line subtitle for what the officer just said
-// Uses only the built-in UI shader, so nothing extra has to be included in the Quest build.
+// Head-locked feedback on a world-space canvas (screen overlays don't render in XR): hit flash, OC haze, fade, subtitle
 [RequireComponent(typeof(PlayerRig))]
 public class PlayerFeedbackOverlay : MonoBehaviour
 {
@@ -59,7 +53,7 @@ public class PlayerFeedbackOverlay : MonoBehaviour
 
         var rect = canvasGo.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(1000f, 1000f);
-        // 1000 units -> wide enough to cover the whole field of view at this distance.
+        // 1000 units -> wide enough to cover the whole field of view at this distance
         float worldSize = distance * 4f;
         canvasGo.transform.localScale = Vector3.one * (worldSize / 1000f);
 

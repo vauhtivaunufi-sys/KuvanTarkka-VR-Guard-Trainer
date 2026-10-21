@@ -3,10 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 
-// Shield implementation. Blocking is physical, like a real shield: a blow is stopped when the shield is held in a hand and its solid
-// collider is actually between the prisoner and the spot he is hitting (head or chest). Hold it up in front of you and you are
-// covered; let it hang at your side and you are not - there is no on/off button to remember.
-// Walking the shield into a non-aggressive prisoner still shoves him (reworked in step 8).
+// Shield blocks physically: a blow stops only if the held shield's collider is between the prisoner and the target
 
 [RequireComponent(typeof(Rigidbody))]
 public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
@@ -24,7 +21,7 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
         base.Awake();
         rb = GetComponent<Rigidbody>();
 
-        // The block test uses the shield's real shape: every non-trigger collider on it. Triggers are sensing zones, not plate.
+        // Blocking uses every non-trigger collider on the shield, triggers are sensing zones
         var solids = new List<Collider>();
         foreach (Collider c in GetComponentsInChildren<Collider>(true))
         {
@@ -60,7 +57,7 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
         previousPosition = rb.position;
     }
 
-    // The trigger has no job on a shield - holding it is what matters.
+    // The trigger has no job on a shield - holding it is what matters
     protected override void OnUse()
     {
     }
@@ -76,7 +73,7 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
         if (distance < 0.001f)
             return false;
 
-        // Collider.Raycast tests only this one collider, so walls, the prisoner's own body or the player's hands can't get in the way.
+        // Tests only this collider, so walls, bodies and hands can't get in the way
         var ray = new Ray(attackOrigin, toTarget / distance);
         foreach (Collider c in solidColliders)
         {
@@ -89,23 +86,19 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
         return false;
     }
 
-    // Requires a solid (non-trigger) collider on the shield matching its physical shape.
+    // Requires a solid (non-trigger) collider on the shield matching its physical shape
     void OnCollisionStay(Collision collision)
     {
         PrisonerStatusSystem status = collision.collider.GetComponentInParent<PrisonerStatusSystem>();
         if (status == null || !ShouldPush(status))
             return;
 
-        // Move the NavMeshAgent instead of pushing the Rigidbody: the agent
-        // owns the transform and cancels physics forces, and Move keeps the
-        // prisoner on the NavMesh instead of shoving it through walls.
+        // Move the agent, not the Rigidbody, so the prisoner stays on the NavMesh
         NavMeshAgent agent = status.GetComponent<NavMeshAgent>();
         if (agent == null || !agent.enabled || !agent.isOnNavMesh)
             return;
 
-        // Push along the direction the shield is moving, not outwards from
-        // its center - so the prisoner can be steered sideways too, not only
-        // straight away from the player.
+        // Push along the shield's movement so the prisoner can be steered sideways
         Vector3 push = currentVelocity;
         push.y = 0f;
         if (push.sqrMagnitude < 0.0001f)
@@ -114,7 +107,7 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
         agent.Move(push * pushSpeedMultiplier * Time.fixedDeltaTime);
     }
 
-    // Push only affects prisoners that are not currently aggressive: an attacking prisoner should be blocked, not shoved aside.
+    // Only non-aggressive prisoners get pushed, an attacker is blocked instead
     bool ShouldPush(PrisonerStatusSystem status)
     {
         return status.CurrentEmotional == PrisonerEmotional.Scared ||

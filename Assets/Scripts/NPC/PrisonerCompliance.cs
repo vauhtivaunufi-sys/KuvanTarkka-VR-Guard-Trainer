@@ -3,6 +3,8 @@ using UnityEngine;
 
 // Prisoner's attitude: one hidden number 0..1 that decides how he behaves
 [RequireComponent(typeof(PrisonerStatusSystem))]
+[RequireComponent(typeof(PrisonerPerception))]
+[RequireComponent(typeof(SpeechBubble))]
 public class PrisonerCompliance : MonoBehaviour
 {
     [Tooltip("Starting aggression, 0 calm - 1 violent")]
@@ -47,6 +49,7 @@ public class PrisonerCompliance : MonoBehaviour
     float crowdedTime;
     float calmDownStrength = 1f;
     float lastWarningTime = float.NegativeInfinity;
+    float lastAimedTime = float.NegativeInfinity;
     float lastObeyTime = float.NegativeInfinity;
     float nextBarkTime;
     Coroutine pendingResponse;
@@ -65,20 +68,12 @@ public class PrisonerCompliance : MonoBehaviour
     public bool WantsToAttack => status.CurrentRestraint == PrisonerRestraint.Free &&
                                  (IsHostile || (IsAgitated && crowdedTime >= crowdingBeforeLashOut));
 
-    public static PrisonerCompliance GetOrAdd(GameObject prisoner)
-    {
-        PrisonerCompliance c = prisoner.GetComponent<PrisonerCompliance>();
-        return c != null ? c : prisoner.AddComponent<PrisonerCompliance>();
-    }
-
     void Awake()
     {
         status = GetComponent<PrisonerStatusSystem>();
         movement = GetComponent<PrisonerAIMovement>();
-        perception = PrisonerPerception.GetOrAdd(gameObject);
+        perception = GetComponent<PrisonerPerception>();
         speech = GetComponent<SpeechBubble>();
-        if (speech == null)
-            speech = gameObject.AddComponent<SpeechBubble>();
         Aggression = initialAggression;
     }
 
@@ -105,6 +100,10 @@ public class PrisonerCompliance : MonoBehaviour
         Aggression = Mathf.MoveTowards(Aggression, initialAggression, driftPerSecond * Time.deltaTime);
         // Calm-down talk regains its strength over half a minute
         calmDownStrength = Mathf.MoveTowards(calmDownStrength, 1f, Time.deltaTime / 30f);
+
+        // A taser laser on his chest is a strong deterrent while it stays there
+        if (IsAimedAt && !IsHostile)
+            ChangeAggression(-0.02f * Time.deltaTime);
 
         if (IsHostile && perception.CanSeePlayer && Time.time >= nextBarkTime)
         {
@@ -135,6 +134,22 @@ public class PrisonerCompliance : MonoBehaviour
     {
         initialAggression = Mathf.Clamp01(value);
         Aggression = initialAggression;
+    }
+
+    bool IsAimedAt => Time.time - lastAimedTime < 0.2f;
+
+    // The officer's taser laser is on him this frame
+    public void NotifyTaserAimed()
+    {
+        lastAimedTime = Time.time;
+    }
+
+    // Warning arc crackling in front of him: counts as a clear warning
+    public void NotifyWarningArc()
+    {
+        lastWarningTime = Time.time;
+        if (!IsHostile)
+            ChangeAggression(-0.1f);
     }
 
     public void ChangeAggression(float delta)
@@ -195,6 +210,7 @@ public class PrisonerCompliance : MonoBehaviour
         if (IsScared) p += 0.25f;
         if (status.CurrentConditional == PrisonerConditional.InPain) p += 0.3f;
         if (Time.time - lastWarningTime < 30f) p += 0.12f;
+        if (Time.time - lastAimedTime < 2f) p += 0.2f;
         if (distance > 8f) p -= 0.15f;
         // Never fully certain either way, people are unpredictable
         return Mathf.Clamp(p, 0.03f, 0.97f);
@@ -283,6 +299,8 @@ public class PrisonerCompliance : MonoBehaviour
             ChangeAggression(-0.45f);
         else if (effect == PrisonerConditional.InPain)
             ChangeAggression(-0.3f);
+        else if (effect == PrisonerConditional.Staggered)
+            ChangeAggression(-0.05f);
 
         // Force on someone who was doing what he was told makes things worse
         if (wasComplying && !status.IsCuffed)

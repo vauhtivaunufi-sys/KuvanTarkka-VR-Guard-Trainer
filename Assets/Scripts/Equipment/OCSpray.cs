@@ -1,7 +1,7 @@
 using UnityEngine;
 
 
-// OC spray implementation: affects prisoners inside a short cone in front of the use point, with particle and sound effects.
+// OC spray: hits prisoners in a short cone in front of the nozzle, with particles and sound
 
 public class OCSpray : GrabbableWeapon
 {
@@ -38,8 +38,7 @@ public class OCSpray : GrabbableWeapon
             if (Vector3.Angle(usePoint.forward, toTarget) > halfAngle)
                 continue;
 
-            // Search parents too so child colliders (e.g. on an artist's
-            // model) still register hits.
+            // Parents too, so colliders on child models count
             PrisonerStatusSystem prisoner = hit.GetComponentInParent<PrisonerStatusSystem>();
             if (prisoner != null)
             {

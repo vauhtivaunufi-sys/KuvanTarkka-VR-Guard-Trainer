@@ -6,19 +6,12 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 
-// Editor-only helpers for the parts of the NavMesh setup that are pure
-// bookkeeping across dozens of objects in the level FBX: every door needs the
-// same two components, and the ceiling and lamps all need the same one. Doing
-// that by hand is where the half-finished setup came from, so it lives here
-// instead. Everything is idempotent - objects that are already set up are
-// reported and left alone, so re-running never clobbers hand-tuned values.
+// Editor helpers for NavMesh bookkeeping in the level FBX, safe to re-run, objects already set up are left alone
 static class NavMeshSceneSetup
 {
     const string ObstacleChildName = "DoorObstacle";
 
-    // Names in NEWPrisonLevelDesign_Blockout_01.fbx that must not contribute
-    // geometry to the bake. The surface collects Render Meshes, so the ceiling
-    // otherwise bakes as its own walkable region floating above the level.
+    // Level FBX objects kept out of the bake, otherwise the ceiling bakes as a walkable area above the level
     static readonly string[] ExcludedExactNames = { "Ceiling_1" };
     static readonly string[] ExcludedNamePrefixes = { "Lamp_" };
 
@@ -39,9 +32,7 @@ static class NavMeshSceneSetup
             GameObject go = door.gameObject;
             bool touched = false;
 
-            // Ignore From Build goes on the door mesh with Apply To Children so
-            // the closed leaf is not baked in as a permanent wall - the
-            // obstacle below is what blocks the doorway at runtime.
+            // Closed leaf stays out of the bake, the obstacle below blocks the doorway at runtime
             NavMeshModifier modifier = go.GetComponent<NavMeshModifier>();
             if (modifier == null)
             {
@@ -111,8 +102,7 @@ static class NavMeshSceneSetup
                   "Re-bake the NavMeshSurface for this to take effect.");
     }
 
-    // Reports what is still missing without changing anything, so the state of
-    // the level can be checked before and after a bake.
+    // Reports what is missing without changing anything
     [MenuItem("Tools/KuvanTarkka/NavMesh/Report Setup State")]
     static void ReportState()
     {
@@ -161,8 +151,7 @@ static class NavMeshSceneSetup
         return null;
     }
 
-    // The obstacle is a child of the leaf so it swings with it: closed, it
-    // carves the doorway shut; open, it carves alongside the wall instead.
+    // Obstacle on the leaf swings with it, closed it carves the doorway shut
     static bool CreateObstacle(Door door)
     {
         if (!TryGetLocalBounds(door.transform, out Bounds local))
@@ -187,9 +176,7 @@ static class NavMeshSceneSetup
         return true;
     }
 
-    // Renderer.bounds is a world-space AABB, which is far too big for a door
-    // standing at an angle - walk the mesh bounds into the door's own space
-    // instead so the obstacle matches the leaf.
+    // Mesh bounds in the door's own space, world bounds are far too big for a door at an angle
     static bool TryGetLocalBounds(Transform door, out Bounds bounds)
     {
         bounds = default;

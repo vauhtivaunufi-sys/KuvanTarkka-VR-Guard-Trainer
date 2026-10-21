@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 
 
-// Trigger zone that detains a prisoner who is moved into it while disabled - Electrocuted or InPain (in practice: pushed in with the shield).
-// Scared does NOT count any more: a scared prisoner keeps patrolling, so a patrol route crossing the zone made him "detain himself".
+// Detains a prisoner moved in while Electrocuted or InPain, Scared doesn't count or a patrol route would detain him
 
 [RequireComponent(typeof(Collider))]
 public class RestraintZone : MonoBehaviour

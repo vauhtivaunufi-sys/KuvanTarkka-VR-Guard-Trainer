@@ -3,8 +3,7 @@ using TMPro;
 using UnityEngine;
 
 
-// Objective text HUD (M15): shows the current objective on a world-space canvas and cross-fades whenever it changes.
-// Listens to RestraintZone.OnPrisonerDetained for completion; PrisonerAIMovement exposes no activation event, so the sleep-to-active transition is detected by polling IsActive.
+// Objective text on a world-space canvas, cross-fades on change, completes when a prisoner is detained
 
 public class ObjectiveUIController : MonoBehaviour
 {
@@ -51,7 +50,7 @@ public class ObjectiveUIController : MonoBehaviour
         SetObjectiveText(text);
     }
 
-    // Fades the current text out, swaps it, and fades the new text back in.
+    // Fades the current text out, swaps it and fades the new one in
     public void SetObjectiveText(string text)
     {
         if (fadeRoutine != null)

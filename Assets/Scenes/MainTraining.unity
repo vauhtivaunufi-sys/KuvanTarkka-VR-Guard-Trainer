@@ -656,8 +656,132 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1670256625, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1490624321}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 499644903}
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 499644902}
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 499644901}
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 499644900}
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 499644899}
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 499644898}
   m_SourcePrefab: {fileID: 100100000, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+--- !u!1 &499644897 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+  m_PrefabInstance: {fileID: 499644896}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &499644898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499644897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4885e4aaed2199d43a2aa8eb0a5b89ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VrPointer
+  maxDistance: 8
+  rayColor: {r: 1, g: 1, b: 1, a: 0.6}
+--- !u!114 &499644899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499644897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a81b1197edfce444296385fbcee16518, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VerbalCommandMenu
+  selectDeadzone: 0.5
+  holdToPick: 0.12
+  autoCloseAfter: 8
+  menuOffset: {x: 0, y: 0.17, z: 0.06}
+  radius: 0.115
+  commandClips: []
+  itemColor: {r: 0.08, g: 0.1, b: 0.14, a: 0.85}
+  selectedColor: {r: 0.95, g: 0.55, b: 0.1, a: 0.95}
+--- !u!114 &499644900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499644897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c57910bef95efa14a818631cc7031a7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealthBar
+  placement: 0
+  wristOffset: {x: 0, y: 0.06, z: -0.07}
+  viewOffset: {x: -0.13, y: -0.11, z: 0.45}
+  worldSize: {x: 0.13, y: 0.026}
+  fillColor: {r: 0.9, g: 0.12, b: 0.12, a: 1}
+  lowFillColor: {r: 1, g: 0.25, b: 0.1, a: 1}
+  chipColor: {r: 1, g: 0.85, b: 0.8, a: 0.9}
+  trackColor: {r: 0.22, g: 0.02, b: 0.02, a: 0.9}
+  panelColor: {r: 0.03, g: 0.04, b: 0.06, a: 0.7}
+  lowHealthFraction: 0.35
+  chipDrainSpeed: 0.5
+  segments: 10
+--- !u!114 &499644901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499644897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15066aed7861cf84f9a1a63259406ce7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  maxHealth: 100
+  restartDelay: 5
+--- !u!114 &499644902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499644897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54a976afc33b4ac42857d6af3f43dceb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerFeedbackOverlay
+  distance: 0.25
+  damageColor: {r: 0.8, g: 0, b: 0, a: 0.55}
+  contaminationColor: {r: 1, g: 0.55, b: 0.1, a: 0.45}
+--- !u!114 &499644903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499644897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f8812b0bd94514e950ae73fa3dcf75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRig
+  head: {fileID: 0}
+  chestBelowHead: 0.35
 --- !u!1001 &527741380
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -942,6 +1066,58 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 962982745}
   m_SourcePrefab: {fileID: 100100000, guid: e3bd01e234af4af408221a9138f91af5, type: 3}
+--- !u!1 &528869555
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 528869557}
+  - component: {fileID: 528869556}
+  m_Layer: 0
+  m_Name: ScenarioRunner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!114 &528869556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 528869555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa6a3905d964ad843a65ed1558a559f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScenarioRunner
+  defaultScenario: {fileID: 11400000, guid: 9e2060049dfd54c42b31e8aa9ce8b342, type: 2}
+  inmates:
+  - {fileID: 4186039989658022322}
+  cellDoors:
+  - {fileID: 1846272754}
+  objectiveUI: {fileID: 1346116085}
+  resultDelay: 3
+  pauseTapTime: 0.4
+--- !u!4 &528869557
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 528869555}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.21133, y: 0, z: 1.5662}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &692062781
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1387,9 +1563,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShieldEquipment
   usePoint: {fileID: 0}
   cooldownDuration: 2
-  isBlocking: 0
-  blockZone: {fileID: 776675883}
-  blockAngle: 60
+  handGrip: {fileID: 0}
+  handleRake: 0
   pushSpeedMultiplier: 1.5
 --- !u!114 &776675886
 MonoBehaviour:
@@ -2004,6 +2179,11 @@ MonoBehaviour:
   maxCurlAngle: 80
   thumbGripInfluence: 0.6
   smoothing: 18
+  alignHand: 1
+  controllerHandleRake: 30
+  heldGrip: 0.75
+  heldOffset: {x: 0, y: 0, z: 0}
+  heldRotation: {x: 0, y: 0, z: 0}
 --- !u!1 &1334185304
 GameObject:
   m_ObjectHideFlags: 0
@@ -2831,6 +3011,11 @@ MonoBehaviour:
   maxCurlAngle: 80
   thumbGripInfluence: 0.6
   smoothing: 18
+  alignHand: 1
+  controllerHandleRake: 30
+  heldGrip: 0.75
+  heldOffset: {x: 0, y: 0, z: 0}
+  heldRotation: {x: 0, y: 0, z: 0}
 --- !u!1 &1511777030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3101,7 +3286,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4718455543851671010, guid: 86157238516ed00449ca759080608476, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 86157238516ed00449ca759080608476, type: 3}
 --- !u!1 &1846272751 stripped
 GameObject:
@@ -3922,6 +4110,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7799bc9933773a24caf0ee8307dee6fb, type: 3}
+--- !u!114 &4186039989658022322 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9193723782553372884, guid: 7799bc9933773a24caf0ee8307dee6fb, type: 3}
+  m_PrefabInstance: {fileID: 4186039989658022321}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 127da8f71a4f340449d774f4dc1eca71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PrisonerStatusSystem
 --- !u!1001 &6011946587778039672
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4034,7 +4233,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4718455543851671010, guid: 86157238516ed00449ca759080608476, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 86157238516ed00449ca759080608476, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -4053,3 +4255,4 @@ SceneRoots:
   - {fileID: 527741380}
   - {fileID: 1828014913}
   - {fileID: 784968495}
+  - {fileID: 528869557}

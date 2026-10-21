@@ -7,15 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 
-// DEV TOOL - EDITOR ONLY. THE GAME IS VR ONLY.
-// Everything in DevTools/DesktopTesting exists so team members without a headset can test game logic by pressing Play
-// in the Unity editor. None of it is compiled into any build (#if UNITY_EDITOR), and no game script depends on it.
-// It only stands in for the headset and controllers; it is NOT a second way to play and must never shape VR design.
-//
-// This class decides once per Play session whether to use the headset or keyboard & mouse, and when it is keyboard
-// & mouse, puts a DesktopPlayer on the XR Origin. Nothing is added to the scene by hand, so the scene stays pure VR.
-// Tools > KuvanTarkka > Desktop Testing lets each person pick Auto / Keyboard and Mouse / Headset Only (saved per computer).
-// Auto = headset if an XR display is actually running, otherwise keyboard & mouse.
+// EDITOR ONLY dev tool: picks headset or keyboard and mouse on Play and adds DesktopPlayer, the game itself is VR only
 public static class DesktopMode
 {
     public enum Setting
@@ -25,14 +17,14 @@ public static class DesktopMode
         Headset
     }
 
-    // Shared with the editor menu (Editor/KeyboardMouseModeMenu.cs).
+    // Shared with the editor menu (Editor/KeyboardMouseModeMenu.cs)
     public const string EditorPrefsKey = "KuvanTarkka.PlayMode";
 
     public static bool IsActive { get; private set; }
 
     public static Setting CurrentSetting => (Setting)UnityEditor.EditorPrefs.GetInt(EditorPrefsKey, (int)Setting.Auto);
 
-    // Statics survive between Play sessions when domain reload is turned off - start clean every time.
+    // Statics survive between Play sessions when domain reload is turned off - start clean every time
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetStatics()
     {
@@ -40,7 +32,7 @@ public static class DesktopMode
         SceneManager.sceneLoaded -= HandleSceneLoaded;
     }
 
-    // XR is started before the first scene loads, so by now we can tell whether a headset is really there.
+    // XR is started before the first scene loads, so by now we can tell whether a headset is really there
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Init()
     {
@@ -66,8 +58,7 @@ public static class DesktopMode
         ReportBrokenAffordances();
     }
 
-    // XRI highlight effects ("affordances") throw a NullReferenceException every frame while hovered if their theme asset
-    // is missing. The exception doesn't say which object it is - this does, once per Play.
+    // Names the object whose missing XRI affordance theme throws every frame, the exception itself doesn't
     static void ReportBrokenAffordances()
     {
         foreach (MonoBehaviour mb in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -82,7 +73,7 @@ public static class DesktopMode
             }
             catch (Exception)
             {
-                // A broken datum can throw instead of returning null - same problem.
+                // A broken datum can throw instead of returning null - same problem
             }
 
             if (theme == null)
@@ -114,7 +105,7 @@ public static class DesktopMode
         AttachToRig();
     }
 
-    // An XR display that is running means frames really go to a headset.
+    // An XR display that is running means frames really go to a headset
     static bool HeadsetRunning()
     {
         var displays = new List<XRDisplaySubsystem>();

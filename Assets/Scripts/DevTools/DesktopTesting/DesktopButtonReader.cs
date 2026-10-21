@@ -2,8 +2,7 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
-// DEV TOOL - EDITOR ONLY (see DesktopMode).
-// A "button" that XRI interactors can read, but whose state is set from code instead of coming from a controller.
+// EDITOR ONLY dev tool: a button XRI interactors read, set from code instead of a controller
 public class DesktopButtonReader : IXRInputButtonReader
 {
     bool isPerformed;

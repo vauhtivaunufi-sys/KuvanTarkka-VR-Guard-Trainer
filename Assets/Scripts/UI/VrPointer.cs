@@ -1,7 +1,6 @@
 using UnityEngine;
 
-// Points at VR panel buttons and clicks them with the trigger
-// Headset: a ray from each controller, desktop testing: the crosshair in the middle of the view
+// Clicks VR panel buttons with the trigger: controller rays in the headset, the crosshair in desktop testing
 [RequireComponent(typeof(PlayerRig))]
 public class VrPointer : MonoBehaviour
 {
@@ -101,12 +100,7 @@ public class VrPointer : MonoBehaviour
     // A hand holding the taser or spray keeps its trigger for the item
     static bool HandHoldsItem(Hand hand)
     {
-        foreach (GrabbableWeapon item in FindObjectsByType<GrabbableWeapon>(FindObjectsSortMode.None))
-        {
-            if (item.HoldingHand == hand)
-                return true;
-        }
-        return false;
+        return GrabbableWeapon.HeldIn(hand) != null;
     }
 
     void SetHovered(VrButton target, Hand hand)
@@ -157,20 +151,10 @@ public class VrPointer : MonoBehaviour
 
     LineRenderer CreateLine(Hand hand)
     {
-        var go = new GameObject($"{hand} Pointer Ray");
-        var line = go.AddComponent<LineRenderer>();
-        line.useWorldSpace = true;
-        line.positionCount = 2;
-        line.startWidth = 0.004f;
+        LineRenderer line = LineVisuals.Create($"{hand} Pointer Ray", 0.004f, rayColor);
+        RuntimeRoot.Adopt(line.gameObject);
         line.endWidth = 0.002f;
-        Shader shader = Shader.Find("Sprites/Default");
-        if (shader == null)
-            shader = Shader.Find("UI/Default");
-        line.material = new Material(shader);
-        line.startColor = rayColor;
         line.endColor = new Color(rayColor.r, rayColor.g, rayColor.b, 0.15f);
-        line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        line.receiveShadows = false;
         return line;
     }
 }

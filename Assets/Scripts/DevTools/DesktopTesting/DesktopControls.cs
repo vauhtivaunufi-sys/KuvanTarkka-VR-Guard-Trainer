@@ -3,18 +3,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
-// DEV TOOL - EDITOR ONLY (see DesktopMode). The keyboard & mouse layout for desktop testing, all in one place.
-// DesktopPlayer plugs an instance into ControllerInput.Override, so every game feature that reads a controller button
-// through ControllerInput (taser safety, commands, debug toggle...) can be tested without a headset - with no
-// desktop-specific code in the feature itself.
-//
-//   Right hand: trigger = Left mouse,  grip (hold item) = E,  A = R,  B = T
-//   Left hand:  trigger = Right mouse, grip (hold item) = Q,  X = F,  Y = G,  menu = Tab
-//   Left stick = WASD,  right stick click = Middle mouse
+// EDITOR ONLY dev tool: keyboard and mouse layout for desktop testing, plugged into ControllerInput.Override
 public class DesktopControls : IControllerInputSource
 {
-    // Grip in VR is "squeeze to hold". On a keyboard that would mean keeping E pressed all the time, so E/Q toggle a
-    // held state instead. DesktopPlayer owns that state and reports it here.
+    // E/Q toggle holding instead of squeezing, DesktopPlayer owns that state and reports it here
     readonly bool[] gripHeld = new bool[2];
     readonly int[] gripChangedFrame = { -1, -1 };
 
@@ -76,15 +68,14 @@ public class DesktopControls : IControllerInputSource
         return Vector2.ClampMagnitude(move, 1f);
     }
 
-    // A key is down if either input system sees it. Both are read because on some setups the Input System never
-    // updates keyboard/mouse in the editor's Play mode, while the old UnityEngine.Input (Active Input Handling = Both) does.
+    // Reads both input systems, in some editor setups only the old Input sees the keyboard
     public static bool Key(KeyControl inputSystemKey, KeyCode legacyKey) =>
         (inputSystemKey != null && inputSystemKey.isPressed) || Input.GetKey(legacyKey);
 
     public static bool KeyDown(KeyControl inputSystemKey, KeyCode legacyKey) =>
         (inputSystemKey != null && inputSystemKey.wasPressedThisFrame) || Input.GetKeyDown(legacyKey);
 
-    // Same layout as Control(), for the old input manager.
+    // Same layout as Control(), for the old input manager
     static KeyCode Legacy(Hand hand, ControllerButton button)
     {
         if (hand == Hand.Right)

@@ -8,7 +8,9 @@ public enum PrisonerConditional
     Idle,
     Electrocuted,
     InPain,
-    Detained
+    Detained,
+    // Short jolt of pain without collapse: taser probes too close, drive stun
+    Staggered
 }
 
 
@@ -28,8 +30,7 @@ public enum PrisonerRestraint
 }
 
 
-// Tracks the prisoner's conditional status and its reactions to equipment effects. Temporary effects wear off after their duration;
-// Detained is permanent. Also tracks the emotional status, which other systems (e.g. attack behaviour) read and set.
+// Prisoner's status under equipment effects, temporary ones wear off, Detained stays
 
 public class PrisonerStatusSystem : MonoBehaviour
 {
@@ -45,13 +46,13 @@ public class PrisonerStatusSystem : MonoBehaviour
     [Tooltip("How long the prisoner stays scared (won't chase or attack) after an effect wears off, in seconds. 0 = never gets scared.")]
     [SerializeField] float scaredDuration = 20f;
 
-    // Raised whenever the conditional status changes.
+    // Raised whenever the conditional status changes
     public event Action<PrisonerConditional> OnConditionalStatusChanged;
 
     // Raised on every hit, also when the status stays the same (a second taser hit)
     public event Action<PrisonerConditional, float> OnEffectApplied;
 
-    // Raised whenever the emotional status changes.
+    // Raised whenever the emotional status changes
     public event Action<PrisonerEmotional> OnEmotionalStatusChanged;
 
     public event Action<PrisonerRestraint> OnRestraintChanged;
@@ -64,8 +65,12 @@ public class PrisonerStatusSystem : MonoBehaviour
 
     public PrisonerRestraint CurrentRestraint { get; private set; } = PrisonerRestraint.Free;
 
-    // Effect durations, exposed so other systems (e.g. animation) can sync to the effect timeline.
-    public float ElectrocutedDuration => electrocutedDuration;
+    // Effect durations, exposed so other systems (e.g. animation) can sync to the effect timeline
+    public float ElectrocutedDuration =>
+        CurrentConditional == PrisonerConditional.Electrocuted && lastEffectDuration > 0f ? lastEffectDuration : electrocutedDuration;
+
+    // When the current effect wears off, moves later if the taser cycles again
+    public float EffectEndTime { get; private set; }
 
     public float InPainDuration => inPainDuration;
 
@@ -75,14 +80,30 @@ public class PrisonerStatusSystem : MonoBehaviour
 
     // An effect stops him acting on his own right now
     public bool IsUnderEffect => CurrentConditional == PrisonerConditional.Electrocuted ||
-                                 CurrentConditional == PrisonerConditional.InPain;
+                                 CurrentConditional == PrisonerConditional.InPain ||
+                                 CurrentConditional == PrisonerConditional.Staggered;
 
     Coroutine recoverRoutine;
     Coroutine calmDownRoutine;
+    float lastEffectDuration;
 
     public void ApplyTaser()
     {
-        ApplyTemporaryEffect(PrisonerConditional.Electrocuted, electrocutedDuration);
+        ApplyTaser(electrocutedDuration);
+    }
+
+    // Full incapacitation for one taser cycle plus the time on the ground, again while down extends it
+    public void ApplyTaser(float duration)
+    {
+        ApplyTemporaryEffect(PrisonerConditional.Electrocuted, duration);
+    }
+
+    // Pain only: he flinches and stops what he was doing, no fall
+    public void ApplyStagger(float duration)
+    {
+        if (CurrentConditional == PrisonerConditional.Electrocuted || CurrentConditional == PrisonerConditional.InPain)
+            return;
+        ApplyTemporaryEffect(PrisonerConditional.Staggered, duration);
     }
 
     public void ApplyOCSpray()
@@ -90,7 +111,7 @@ public class PrisonerStatusSystem : MonoBehaviour
         ApplyTemporaryEffect(PrisonerConditional.InPain, inPainDuration);
     }
 
-    // Permanently detains the prisoner (training objective completed).
+    // Permanently detains the prisoner (training objective completed)
     public void Detain()
     {
         if (CurrentConditional == PrisonerConditional.Detained)
@@ -134,19 +155,21 @@ public class PrisonerStatusSystem : MonoBehaviour
 
         if (recoverRoutine != null)
             StopCoroutine(recoverRoutine);
+        lastEffectDuration = duration;
+        EffectEndTime = Time.time + duration;
         SetConditional(conditional);
         OnEffectApplied?.Invoke(conditional, duration);
-        recoverRoutine = StartCoroutine(RecoverAfterDelay(duration));
+        recoverRoutine = StartCoroutine(RecoverAfterDelay(duration, conditional));
     }
 
-    IEnumerator RecoverAfterDelay(float duration)
+    IEnumerator RecoverAfterDelay(float duration, PrisonerConditional effect)
     {
         yield return new WaitForSeconds(duration);
         recoverRoutine = null;
         SetConditional(PrisonerConditional.Idle);
-        // Being hit teaches the prisoner to keep away for a while: scared
-        // prisoners neither chase nor attack, they go back to patrolling.
-        BecomeScared();
+        // Being hit scares him off for a while, a short jolt of pain doesn't
+        if (effect != PrisonerConditional.Staggered)
+            BecomeScared();
     }
 
     void BecomeScared()
@@ -176,7 +199,8 @@ public class PrisonerStatusSystem : MonoBehaviour
         CurrentConditional = conditional;
         TrainingDebug.Log($"{displayName} conditional status -> {conditional}", this);
 
-        if (conditional == PrisonerConditional.Electrocuted || conditional == PrisonerConditional.InPain)
+        if (conditional == PrisonerConditional.Electrocuted || conditional == PrisonerConditional.InPain ||
+            conditional == PrisonerConditional.Staggered)
             TrainingLog.Record(TrainingEventType.PrisonerState, $"{displayName}: {conditional}");
         else if (conditional == PrisonerConditional.Idle)
             TrainingLog.Record(TrainingEventType.PrisonerState, $"{displayName} recovered from {previous}");

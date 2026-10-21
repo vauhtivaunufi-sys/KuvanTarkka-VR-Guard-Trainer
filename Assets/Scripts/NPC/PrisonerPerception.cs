@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// What the prisoner knows about the officer: sight (view cone + line of sight, walls block it), hearing (doors, taser shots,
-// shouted commands) and short-term memory of where the officer was last seen. Chasing and attacking are gated on this, so the
-// prisoner no longer "sees" through walls or swings at someone on the other side of a closed door.
+// What the prisoner knows about the officer: sight blocked by walls, hearing and where he was last seen
 [RequireComponent(typeof(PrisonerStatusSystem))]
 public class PrisonerPerception : MonoBehaviour
 {
@@ -36,18 +34,18 @@ public class PrisonerPerception : MonoBehaviour
     float lastSeenTime = float.NegativeInfinity;
     float lastHeardTime = float.NegativeInfinity;
 
-    // True if the officer is currently in view with a clear line of sight.
+    // True if the officer is currently in view with a clear line of sight
     public bool CanSeePlayer { get; private set; }
 
-    // True while the prisoner is aware of the officer: seen or heard within memoryDuration.
+    // True while the prisoner is aware of the officer: seen or heard within memoryDuration
     public bool IsAware => Time.time - Mathf.Max(lastSeenTime, lastHeardTime) <= memoryDuration;
 
-    // Last known position of the officer's feet.
+    // Last known position of the officer's feet
     public Vector3 LastKnownPlayerPosition { get; private set; }
 
     public float TimeSinceSeen => Time.time - lastSeenTime;
 
-    // Ground-truth horizontal distance to the officer (not limited by perception) - for range checks that need it.
+    // Ground-truth horizontal distance to the officer (not limited by perception) - for range checks that need it
     public float DistanceToPlayer { get; private set; } = float.PositiveInfinity;
 
     public Vector3 EyePosition => eye != null ? eye.position : transform.position + Vector3.up * 1.65f;
@@ -58,14 +56,6 @@ public class PrisonerPerception : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
         if (animator != null && animator.isHuman)
             eye = animator.GetBoneTransform(HumanBodyBones.Head);
-    }
-
-    // Returns the prisoner's perception, adding one with default settings if the prefab doesn't have it yet
-    // (Tools > KuvanTarkka > Setup adds it to the prefab so the values can be tuned).
-    public static PrisonerPerception GetOrAdd(GameObject prisoner)
-    {
-        PrisonerPerception p = prisoner.GetComponent<PrisonerPerception>();
-        return p != null ? p : prisoner.AddComponent<PrisonerPerception>();
     }
 
     void OnEnable() => all.Add(this);
@@ -99,7 +89,7 @@ public class PrisonerPerception : MonoBehaviour
 
     bool CheckSight(PlayerRig rig)
     {
-        // OC in the eyes: effectively blind, but still feels someone right next to him.
+        // OC in the eyes: effectively blind, but still feels someone right next to him
         bool blinded = status.CurrentConditional == PrisonerConditional.InPain;
         if (status.CurrentConditional == PrisonerConditional.Electrocuted)
             return false;
@@ -132,7 +122,7 @@ public class PrisonerPerception : MonoBehaviour
             Transform t = hitBuffer[i].collider.transform;
             if (t.IsChildOf(transform) || rig.IsPartOfPlayer(t))
                 continue;
-            // Equipment in the officer's hands (and loose on the floor) doesn't hide him.
+            // Equipment in the officer's hands (and loose on the floor) doesn't hide him
             if (t.GetComponentInParent<GrabbableWeapon>() != null)
                 continue;
             return false;
@@ -140,7 +130,7 @@ public class PrisonerPerception : MonoBehaviour
         return true;
     }
 
-    // Something made a noise. fromPlayer noises reveal where the officer is.
+    // Something made a noise. fromPlayer noises reveal where the officer is
     public void Hear(Vector3 position, bool fromPlayer)
     {
         if (status.CurrentConditional == PrisonerConditional.Electrocuted)
@@ -162,7 +152,7 @@ public class PrisonerPerception : MonoBehaviour
         return d <= radius * 0.5f || IsLineClearIgnoringPlayer(position);
     }
 
-    // Broadcasts a noise to every prisoner within radius. Walls halve the radius (muffled).
+    // Broadcasts a noise to every prisoner within radius. Walls halve the radius (muffled)
     public static void ReportNoise(Vector3 position, float radius, bool fromPlayer)
     {
         for (int i = all.Count - 1; i >= 0; i--)
@@ -180,7 +170,7 @@ public class PrisonerPerception : MonoBehaviour
         }
     }
 
-    // Line check that treats the player's own colliders and equipment as transparent.
+    // Line check that treats the player's own colliders and equipment as transparent
     bool IsLineClearIgnoringPlayer(Vector3 target)
     {
         PlayerRig rig = PlayerRig.Instance;

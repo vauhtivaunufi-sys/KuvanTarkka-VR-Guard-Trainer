@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5f5e5fcd6dcddb40b274b0e972fe2f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuController
+  catalog: {fileID: 11400000, guid: 6bc3be9f4b92b4a4399e92bcf6864320, type: 2}
   distance: 2
   height: 1.45
 --- !u!4 &147920733
@@ -963,6 +964,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2135588726}
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2135588727}
   m_SourcePrefab: {fileID: 100100000, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
 --- !u!1 &2135588725 stripped
 GameObject:
@@ -983,7 +987,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRig
   head: {fileID: 0}
   chestBelowHead: 0.35
-  officerGear: 0
+--- !u!114 &2135588727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2135588725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4885e4aaed2199d43a2aa8eb0a5b89ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VrPointer
+  maxDistance: 8
+  rayColor: {r: 1, g: 1, b: 1, a: 0.6}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

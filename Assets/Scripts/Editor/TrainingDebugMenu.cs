@@ -2,9 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Tools > KuvanTarkka > Debug Overlays - the one-click switch for every debug aid (see TrainingDebug).
-// Flips the checkbox on the scene's TrainingDebugSettings (creating that object the first time), so the choice is saved with the
-// scene and a build made with it off starts clean. Works in Play mode too.
+// Tools > KuvanTarkka > Debug Overlays: flips the scene's TrainingDebugSettings checkbox, works in Play mode too
 static class TrainingDebugMenu
 {
     const string MenuPath = "Tools/KuvanTarkka/Debug Overlays";
@@ -27,7 +25,7 @@ static class TrainingDebugMenu
             EditorSceneManager.MarkSceneDirty(settings.gameObject.scene);
     }
 
-    // Unity calls this before drawing the menu - keeps the checkmark in sync with the scene.
+    // Unity calls this before drawing the menu - keeps the checkmark in sync with the scene
     [MenuItem(MenuPath, true)]
     static bool ToggleValidate()
     {

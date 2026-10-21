@@ -9,6 +9,8 @@ public enum TrainingEventType
     CommandRefused,
     PrisonerState,
     Restraint,
+    ForceUsed,
+    ForceMissed,
     Info
 }
 

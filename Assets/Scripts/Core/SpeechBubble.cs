@@ -28,6 +28,7 @@ public class SpeechBubble : MonoBehaviour
 
         // Standalone object, so the character's scale doesn't distort the text
         var go = new GameObject($"{name} Speech", typeof(RectTransform));
+        RuntimeRoot.Adopt(go);
         text = go.AddComponent<TextMeshPro>();
         text.rectTransform.pivot = new Vector2(0.5f, 0f);
         text.rectTransform.sizeDelta = new Vector2(1.4f, 0.4f);

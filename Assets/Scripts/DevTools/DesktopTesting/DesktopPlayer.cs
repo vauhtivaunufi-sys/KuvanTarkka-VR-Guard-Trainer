@@ -10,17 +10,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 
-// DEV TOOL - EDITOR ONLY (see DesktopMode). THE GAME IS VR ONLY - this only lets people without a headset test the logic.
-// Keyboard & mouse stand-in for the headset and controllers, first-person-shooter style.
-// DesktopMode adds it to the XR Origin automatically in Play mode when there is no headset - never add it to the scene.
-//
-// It does NOT reimplement grabbing, the taser, the spray, the shield or doors. It drives the XR rig that already exists:
-//   - the head (camera) is turned by the mouse instead of the headset;
-//   - both controllers are held in front of the camera like FPS weapon hands and aimed at the crosshair;
-//   - the controllers' Near-Far Interactors get keyboard/mouse "buttons" (DesktopButtonReader) instead of grip/trigger.
-// So XRI does all the interaction exactly as in VR, and every new feature built on XRI or ControllerInput can be tested here.
-// Feel, reach, aim and timing are NOT VR-accurate here - final checks of any mechanic are always done in the headset.
-[DefaultExecutionOrder(-300)] // before XRI's interaction manager, so this frame's hand poses and buttons are used this frame
+// EDITOR ONLY dev tool: drives the existing XR rig from keyboard and mouse to test logic without a headset
+[DefaultExecutionOrder(-300)] // before XRI, so this frame's hand poses and buttons count this frame
 [DisallowMultipleComponent]
 [RequireComponent(typeof(XROrigin))]
 public class DesktopPlayer : MonoBehaviour
@@ -109,9 +100,7 @@ public class DesktopPlayer : MonoBehaviour
         SetUpHands();
         LockCursor();
 
-        // In the editor, keyboard input normally reaches the game only while the Game view itself has focus. A floating
-        // Console / Input Debugger window or a click elsewhere silently sends it to the editor instead. For the test
-        // tool, send all input to the game while playing; restored when Play stops.
+        // Send all input to the game while playing, otherwise a floating editor window steals the keyboard
         previousInputBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     }
@@ -124,7 +113,7 @@ public class DesktopPlayer : MonoBehaviour
 
     void OnEnable()
     {
-        // From now on ControllerInput answers from the keyboard and mouse instead of the (missing) controllers.
+        // From now on ControllerInput answers from the keyboard and mouse instead of the (missing) controllers
         ControllerInput.Override = controls;
     }
 
@@ -137,14 +126,14 @@ public class DesktopPlayer : MonoBehaviour
         Cursor.visible = true;
     }
 
-    // Stops everything that would fight us for the camera and controllers when no headset is there.
+    // Stops everything that would fight us for the camera and controllers when no headset is there
     void TakeOverFromTracking()
     {
-        // The pose drivers copy headset/controller tracking onto the transforms every frame.
+        // The pose drivers copy headset/controller tracking onto the transforms every frame
         foreach (TrackedPoseDriver poseDriver in GetComponentsInChildren<TrackedPoseDriver>(true))
             poseDriver.enabled = false;
 
-        // The modality manager hides controllers it can't detect - with no headset that is both of them.
+        // The modality manager hides controllers it can't detect - with no headset that is both of them
         XRInputModalityManager modality = GetComponentInChildren<XRInputModalityManager>(true);
         if (modality != null)
         {
@@ -176,13 +165,13 @@ public class DesktopPlayer : MonoBehaviour
                 interactor = interactor
             };
 
-            // From now on XRI reads these instead of the controller's grip / trigger.
+            // From now on XRI reads these instead of the controller's grip / trigger
             interactor.selectInput.bypass = rig.select;
             interactor.activateInput.bypass = rig.activate;
             interactor.uiPressInput.bypass = rig.uiPress;
-            // "Pressed" must mean pressed, whatever the prefab says (Toggle / Sticky would break the E/Q logic below).
+            // "Pressed" must mean pressed, whatever the prefab says (Toggle / Sticky would break the E/Q logic below)
             interactor.selectActionTrigger = XRBaseInputInteractor.InputTriggerType.StateChange;
-            // Point-and-press needs the long ray, and a picked-up item should fly into the hand, not float where it was.
+            // Point-and-press needs the long ray, and a picked-up item should fly into the hand, not float where it was
             interactor.enableFarCasting = true;
             interactor.farAttachMode = InteractorFarAttachMode.Near;
 
@@ -193,7 +182,7 @@ public class DesktopPlayer : MonoBehaviour
             Debug.LogWarning("[DesktopMode] No Near-Far Interactor found under the XR Origin - you can walk and look, but not grab.", this);
     }
 
-    // The controller object is the child of Camera Offset that contains the interactor.
+    // The controller object is the child of Camera Offset that contains the interactor
     Transform ControllerRootOf(Transform t)
     {
         while (t.parent != null && t.parent != cameraOffset)
@@ -212,7 +201,7 @@ public class DesktopPlayer : MonoBehaviour
         LogInputState();
     }
 
-    // Every 2 seconds: what each input system sees. The first thing to read in the Console when "nothing reacts".
+    // Every 2 seconds: what each input system sees. The first thing to read in the Console when "nothing reacts"
     void LogInputState()
     {
         if (!logInputToConsole)
@@ -252,14 +241,13 @@ public class DesktopPlayer : MonoBehaviour
         }
         else if (Cursor.lockState != CursorLockMode.Locked && clickDown)
         {
-            // This click only grabs the mouse back - it must not also fire the taser.
+            // This click only grabs the mouse back - it must not also fire the taser
             LockCursor();
             swallowClick = true;
             swallowUntil = Time.unscaledTime + 0.5f;
         }
 
-        // Release the swallowed click when the button goes up - or after half a second at the latest, in case the
-        // release never reaches the game (it can be eaten by the editor when focus changes mid-click).
+        // Release on button up, or after 0.5 s in case the editor ate the release
         if (swallowClick && (!clickHeld || Time.unscaledTime > swallowUntil))
             swallowClick = false;
 
@@ -275,23 +263,23 @@ public class DesktopPlayer : MonoBehaviour
             Vector2 delta = MouseDelta() * mouseSensitivity;
             lastMouseDelta = delta;
 
-            // Yaw turns the whole rig (so walking follows the view), pitch tilts only the head.
+            // Yaw turns the whole rig (so walking follows the view), pitch tilts only the head
             transform.Rotate(0f, delta.x, 0f, Space.World);
             pitch = Mathf.Clamp(pitch - delta.y, -maxPitch, maxPitch);
         }
 
-        // Head straight above the rig's origin at eye height - what the headset tracking would normally provide.
+        // Head straight above the rig's origin at eye height - what the headset tracking would normally provide
         head.localPosition = cameraOffset.InverseTransformPoint(transform.position + transform.up * eyeHeight);
         head.localRotation = Quaternion.Euler(pitch, 0f, 0f);
     }
 
-    // Mouse movement in pixels this frame, from whichever input system delivers it.
+    // Mouse movement in pixels this frame, from whichever input system delivers it
     Vector2 MouseDelta()
     {
         Vector2 delta = Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
         if (delta == Vector2.zero)
         {
-            // Old input manager: "Mouse X/Y" are pixel deltas scaled by the axis sensitivity (0.1 by default).
+            // Old input manager: "Mouse X/Y" are pixel deltas scaled by the axis sensitivity (0.1 by default)
             delta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y")) * 10f;
         }
         return delta;
@@ -306,16 +294,14 @@ public class DesktopPlayer : MonoBehaviour
         lastMoveInput = input;
         float speed = walkSpeed;
 
-        // TODO(Ivan) - sprint: while Left Shift is held, multiply speed by sprintMultiplier.
-        // Read the key the same way UpdateShortcuts() reads F1 (Keyboard.current, check it for null).
-        // Only when controls.InputEnabled - with a free mouse cursor nothing should react to the keyboard.
+        // TODO(Ivan): sprint, multiply speed by sprintMultiplier while Left Shift is held and input is enabled
 
         Vector3 velocity = (transform.forward * input.y + transform.right * input.x) * speed;
 
         bool xriHandlesGravity = gravityProvider != null && gravityProvider.isActiveAndEnabled && gravityProvider.useGravity;
         if (!xriHandlesGravity && body != null && body.enabled)
         {
-            // Keep a small downward push while grounded so isGrounded stays true on slopes and steps.
+            // Keep a small downward push while grounded so isGrounded stays true on slopes and steps
             if (body.isGrounded && verticalVelocity < 0f)
                 verticalVelocity = -1f;
             verticalVelocity += gravity * Time.deltaTime;
@@ -333,20 +319,19 @@ public class DesktopPlayer : MonoBehaviour
     void PoseHands()
     {
         Vector3 aimPoint = AimPoint();
-        // Hold C = raise the left arm in front of you. In VR you just lift your arm; here the shield in the left hand
-        // would otherwise hang off to the side and never cover the head.
+        // Hold C to raise the left hand, otherwise the shield hangs at the side and never covers the head
         bool guard = controls.InputEnabled && DesktopControls.Key(Keyboard.current?.cKey, KeyCode.C);
 
         foreach (HandRig rig in hands)
         {
             Vector3 offset = guard && rig.hand == Hand.Left ? leftHandGuardOffset : rig.offset;
             Vector3 position = head.TransformPoint(offset);
-            // Each hand points at the crosshair target, so the taser beam / spray cone goes where the player looks.
+            // Each hand points at the crosshair target, so the taser beam / spray cone goes where the player looks
             rig.root.SetPositionAndRotation(position, Quaternion.LookRotation(aimPoint - position, head.up));
         }
     }
 
-    // What the crosshair is on: the first thing hit along the view ray, ignoring the player's own rig and held items.
+    // What the crosshair is on: the first thing hit along the view ray, ignoring the player's own rig and held items
     Vector3 AimPoint()
     {
         Vector3 from = head.position;
@@ -378,7 +363,7 @@ public class DesktopPlayer : MonoBehaviour
         {
             NearFarInteractor interactor = rig.interactor;
 
-            // E / Q: pick up if empty, drop if holding.
+            // E / Q: pick up if empty, drop if holding
             KeyCode legacyGrip = rig.hand == Hand.Right ? KeyCode.E : KeyCode.Q;
             if (controls.InputEnabled && DesktopControls.KeyDown(kb?[rig.gripKey], legacyGrip))
             {
@@ -395,13 +380,13 @@ public class DesktopPlayer : MonoBehaviour
 
             if (rig.holdWanted && interactor.hasSelection)
             {
-                // Grabbables stay in the hand until the next press; a door is a click - release right after it reacted.
+                // Grabbables stay in the hand until the next press; a door is a click - release right after it reacted
                 if (!(interactor.firstInteractableSelected is XRGrabInteractable))
                     rig.holdWanted = false;
             }
             else if (rig.holdWanted && Time.frameCount - rig.holdRequestFrame > 3)
             {
-                // Nothing was in reach (or the item was taken out of the hand) - stop "squeezing".
+                // Nothing was in reach (or the item was taken out of the hand) - stop "squeezing"
                 rig.holdWanted = false;
             }
 
@@ -444,6 +429,7 @@ public class DesktopPlayer : MonoBehaviour
         "Right mouse - use item in left hand    C (hold) - raise left hand (block with the shield)\n" +
         "R / T - right A / B     F / G - left X / Y     Tab - pause (left menu)\n" +
         "G - command menu: tilt with WASD, let go to say it, G again cancels\n" +
+        "Taser in the right hand: R - safety (lasers), left mouse - fire, T - arc\n" +
         "F3 - debug overlays     Esc - free the mouse, click to return";
 
     GUIStyle helpStyle;
@@ -469,7 +455,7 @@ public class DesktopPlayer : MonoBehaviour
 
         DrawCrosshair();
 
-        // Always visible, so nobody mistakes a desktop screen recording for the actual (VR) game.
+        // Always visible, so nobody mistakes a desktop screen recording for the actual (VR) game
         GUI.Label(new Rect(Screen.width - 330, 10, 320, 24), "DESKTOP TEST MODE - not the game (VR only)", watermarkStyle);
 
         if (showHelp)
@@ -483,7 +469,7 @@ public class DesktopPlayer : MonoBehaviour
             GUI.Label(new Rect(0, Screen.height * 0.5f + 30, Screen.width, 60), prompt, promptStyle);
     }
 
-    // Live input state - first thing to look at when "nothing reacts".
+    // Live input state - first thing to look at when "nothing reacts"
     string StatusText()
     {
         Keyboard kb = Keyboard.current;
@@ -507,7 +493,7 @@ public class DesktopPlayer : MonoBehaviour
         GUI.color = Color.white;
     }
 
-    // "E - pick up Taser" etc. under the crosshair, so nobody has to remember the key map.
+    // "E - pick up Taser" etc. under the crosshair, so nobody has to remember the key map
     string HandPrompt()
     {
         string text = "";
