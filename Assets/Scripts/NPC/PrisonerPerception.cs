@@ -171,7 +171,7 @@ public class PrisonerPerception : MonoBehaviour
     }
 
     // Line check that treats the player's own colliders and equipment as transparent
-    bool IsLineClearIgnoringPlayer(Vector3 target)
+    public bool IsLineClearIgnoringPlayer(Vector3 target)
     {
         PlayerRig rig = PlayerRig.Instance;
         return rig != null && HasLineOfSight(target, rig);

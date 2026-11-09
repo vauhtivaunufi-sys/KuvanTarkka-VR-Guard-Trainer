@@ -10,3 +10,9 @@ The credit line is also shown in the main menu. Keep it there in every build tha
 - **Dirty Shiv** by DrewA
   https://sketchfab.com/3d-models/dirty-shiv-c9f1ab603d53427aa7e482b0b79391d0
   Changes: textures reduced to 1024 px, metallic and roughness packed into one Unity metallic/smoothness map.
+
+# Sound credits
+
+- **Spraycan spray** by freesound_community, Pixabay Content License (free to use, no credit required)
+  https://pixabay.com/sound-effects/spraycan-spray-92397/
+  Used as `Assets/Audio/OCSprayLoop.wav`. Changes: mono, a 1.1 s cut from the steady part of the third burst, crossfaded so it loops without a seam.

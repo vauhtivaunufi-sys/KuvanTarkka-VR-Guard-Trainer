@@ -71,6 +71,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a7f29f303d9d9564988852fb92071e29, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4175979031754512466}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a7f29f303d9d9564988852fb92071e29, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4160440858906125180}
   m_SourcePrefab: {fileID: 100100000, guid: a7f29f303d9d9564988852fb92071e29, type: 3}
 --- !u!1 &5862451405790773916 stripped
 GameObject:
@@ -173,8 +176,10 @@ MonoBehaviour:
   m_Deactivated:
     m_PersistentCalls:
       m_Calls: []
-  m_StartingHoverFilters: []
-  m_StartingSelectFilters: []
+  m_StartingHoverFilters:
+  - {fileID: 4160440858906125180}
+  m_StartingSelectFilters:
+  - {fileID: 4160440858906125180}
   m_StartingInteractionStrengthFilters: []
   m_AttachTransform: {fileID: 0}
   m_SecondaryAttachTransform: {fileID: 0}
@@ -245,10 +250,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShieldEquipment
   usePoint: {fileID: 0}
   cooldownDuration: 2
-  isBlocking: 0
-  blockZone: {fileID: 0}
-  blockAngle: 60
-  pushForcePerSpeed: 20
+  handGrip: {fileID: 0}
+  handleRake: 0
+  itemName: Shield
+  strikeSpeed: 1.5
+  thrownStrikeTime: 2
+  pushSpeedMultiplier: 1.5
 --- !u!65 &1964674476233368107
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -291,3 +298,16 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.72, y: 0.99840367, z: 0.05403003}
   m_Center: {x: 0, y: 0.03, z: -0.1}
+--- !u!114 &4160440858906125180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5862451405790773916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 507944e5b2e486443bffc1b7729f1b00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickUpRange
+  radius: 1.2

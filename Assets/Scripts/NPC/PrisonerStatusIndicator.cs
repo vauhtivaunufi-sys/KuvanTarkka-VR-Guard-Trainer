@@ -145,6 +145,10 @@ public class PrisonerStatusIndicator : MonoBehaviour
                 return "<color=#FF9A2E>STAGGERED</color>";
         }
 
+        // Sprayed, the burning hasn't kicked in yet
+        if (status.IsOCPending)
+            return "<color=#FF9A2E>OC TAKING HOLD</color>";
+
         switch (status.CurrentRestraint)
         {
             case PrisonerRestraint.Submitting:

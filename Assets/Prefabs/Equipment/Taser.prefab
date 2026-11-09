@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 4381322507864236929}
   - component: {fileID: 6007596101018321618}
   - component: {fileID: 8899300629115908325}
+  - component: {fileID: 1869267288762979180}
   - component: {fileID: 2489791928944569472}
   - component: {fileID: 2290208965296928239}
   - component: {fileID: 3717615719495737618}
@@ -316,8 +317,10 @@ MonoBehaviour:
   m_Deactivated:
     m_PersistentCalls:
       m_Calls: []
-  m_StartingHoverFilters: []
-  m_StartingSelectFilters: []
+  m_StartingHoverFilters:
+  - {fileID: 1869267288762979180}
+  m_StartingSelectFilters:
+  - {fileID: 1869267288762979180}
   m_StartingInteractionStrengthFilters: []
   m_AttachTransform: {fileID: 8450655533794550565}
   m_SecondaryAttachTransform: {fileID: 0}
@@ -374,6 +377,19 @@ MonoBehaviour:
   m_LimitAngularVelocity: 0
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
+--- !u!114 &1869267288762979180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4327358546903999684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 507944e5b2e486443bffc1b7729f1b00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickUpRange
+  radius: 1
 --- !u!114 &2489791928944569472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,6 +406,9 @@ MonoBehaviour:
   cooldownDuration: 2
   handGrip: {fileID: 0}
   handleRake: 0
+  itemName: Taser
+  strikeSpeed: 1.5
+  thrownStrikeTime: 2
   cartridgeCount: 2
   maxRange: 3.7
   probeSpreadAngle: 12

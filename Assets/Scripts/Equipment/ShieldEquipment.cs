@@ -11,15 +11,11 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
     [Tooltip("How fast a prisoner is shoved, as a multiplier of the shield's own movement speed.")]
     [SerializeField] float pushSpeedMultiplier = 1.5f;
 
-    Rigidbody rb;
     Collider[] solidColliders;
-    Vector3 previousPosition;
-    Vector3 currentVelocity;
 
     protected override void Awake()
     {
         base.Awake();
-        rb = GetComponent<Rigidbody>();
 
         // Blocking uses every non-trigger collider on the shield, triggers are sensing zones
         var solids = new List<Collider>();
@@ -44,17 +40,6 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
     {
         base.OnDisable();
         PlayerHealth.UnregisterBlocker(this);
-    }
-
-    void Start()
-    {
-        previousPosition = rb.position;
-    }
-
-    void FixedUpdate()
-    {
-        currentVelocity = (rb.position - previousPosition) / Time.fixedDeltaTime;
-        previousPosition = rb.position;
     }
 
     // The trigger has no job on a shield - holding it is what matters
@@ -99,7 +84,7 @@ public class ShieldEquipment : GrabbableWeapon, IMeleeBlocker
             return;
 
         // Push along the shield's movement so the prisoner can be steered sideways
-        Vector3 push = currentVelocity;
+        Vector3 push = Velocity;
         push.y = 0f;
         if (push.sqrMagnitude < 0.0001f)
             return;

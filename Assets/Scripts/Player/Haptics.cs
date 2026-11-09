@@ -47,6 +47,18 @@ public static class Haptics
         Pulse(hand, 0.08f, 0.03f);
     }
 
+    // OC stream running: a light steady buzz while the trigger is held
+    public static void OCStream(Hand hand)
+    {
+        Pulse(hand, 0.15f, 0.12f);
+    }
+
+    // OC trigger pressed on an empty canister: barely there
+    public static void OCEmpty(Hand hand)
+    {
+        Pulse(hand, 0.08f, 0.03f);
+    }
+
     // Command menu moved to another command: a tiny tick, like the notch of a dial
     public static void MenuTick(Hand hand)
     {
