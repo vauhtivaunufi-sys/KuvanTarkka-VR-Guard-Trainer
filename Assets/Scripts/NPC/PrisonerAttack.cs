@@ -119,6 +119,8 @@ public class PrisonerAttack : MonoBehaviour
 
     void Attack()
     {
+        TrainingLog.Record(TrainingEventType.InmateAttack,
+            IsArmed ? $"{status.DisplayName} stabs at the officer" : $"{status.DisplayName} swings at the officer");
         lastAttackTime = Time.time;
         attackEndTime = Time.time + attackDuration;
         pendingHitTime = Time.time + hitTime;

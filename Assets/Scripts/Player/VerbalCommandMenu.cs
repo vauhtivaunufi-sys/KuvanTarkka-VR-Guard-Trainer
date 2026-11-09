@@ -24,6 +24,9 @@ public class VerbalCommandMenu : MonoBehaviour
     [Tooltip("Optional voice lines in VerbalCommand order, empty means subtitles only")]
     [SerializeField] AudioClip[] commandClips;
 
+    [Tooltip("Plays the voice lines: an AudioSource on the head camera, 2D, Play On Awake off")]
+    [SerializeField] AudioSource voice;
+
     [SerializeField] Color itemColor = new Color(0.08f, 0.1f, 0.14f, 0.85f);
     [SerializeField] Color selectedColor = new Color(0.95f, 0.55f, 0.1f, 0.95f);
 
@@ -34,7 +37,6 @@ public class VerbalCommandMenu : MonoBehaviour
     PlayerRig rig;
     PlayerHealth health;
     PlayerFeedbackOverlay overlay;
-    AudioSource voice;
     Transform head;
     Transform anchor;
 
@@ -71,12 +73,8 @@ public class VerbalCommandMenu : MonoBehaviour
         if (anchor == null)
             anchor = head;
 
-        if (commandClips != null && commandClips.Length > 0)
-        {
-            voice = head.gameObject.AddComponent<AudioSource>();
-            voice.spatialBlend = 0f;
-            voice.playOnAwake = false;
-        }
+        if (voice == null && commandClips != null && commandClips.Length > 0)
+            Debug.LogWarning("VerbalCommandMenu has voice clips but no Voice source, commands stay silent", this);
 
         Build();
         menuRoot.gameObject.SetActive(false);
@@ -218,7 +216,8 @@ public class VerbalCommandMenu : MonoBehaviour
         if (voice != null && (int)command < commandClips.Length && commandClips[(int)command] != null)
             voice.PlayOneShot(commandClips[(int)command]);
 
-        TrainingLog.Record(TrainingEventType.VerbalCommand, $"Officer: \"{line}\"");
+        TrainingEventType type = command == VerbalCommand.ForceWarning ? TrainingEventType.Warning : TrainingEventType.VerbalCommand;
+        TrainingLog.Record(type, $"Officer: \"{line}\"");
 
         // A shout reaches everyone in earshot, not just the one you look at
         Vector3 mouth = head.position;

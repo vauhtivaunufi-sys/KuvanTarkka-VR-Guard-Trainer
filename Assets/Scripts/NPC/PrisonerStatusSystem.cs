@@ -40,8 +40,12 @@ public class PrisonerStatusSystem : MonoBehaviour
     [Tooltip("How long the prisoner stays electrocuted after a taser hit, in seconds.")]
     [SerializeField] float electrocutedDuration = 5f;
 
-    [Tooltip("How long the prisoner stays in pain after an OC spray hit, in seconds.")]
-    [SerializeField] float inPainDuration = 8f;
+    [Tooltip("Seconds from OC in the eyes to the full effect (min, max)")]
+    [SerializeField] Vector2 ocOnsetDelay = new Vector2(1.5f, 3f);
+
+    [Tooltip("Chance he barely reacts to OC (drugs, adrenaline, rage), rolled once per run")]
+    [Range(0f, 1f)]
+    [SerializeField] float ocNonResponderChance = 0.15f;
 
     [Tooltip("How long the prisoner stays scared (won't chase or attack) after an effect wears off, in seconds. 0 = never gets scared.")]
     [SerializeField] float scaredDuration = 20f;
@@ -56,6 +60,9 @@ public class PrisonerStatusSystem : MonoBehaviour
     public event Action<PrisonerEmotional> OnEmotionalStatusChanged;
 
     public event Action<PrisonerRestraint> OnRestraintChanged;
+
+    // (zone, what hit it) - raised for every probe or strike that landed on him
+    public event Action<BodyZone, string> OnBodyHit;
 
     public string DisplayName => displayName;
 
@@ -72,8 +79,6 @@ public class PrisonerStatusSystem : MonoBehaviour
     // When the current effect wears off, moves later if the taser cycles again
     public float EffectEndTime { get; private set; }
 
-    public float InPainDuration => inPainDuration;
-
     public bool IsDetained => CurrentConditional == PrisonerConditional.Detained;
 
     public bool IsCuffed => CurrentRestraint == PrisonerRestraint.Cuffed;
@@ -85,7 +90,19 @@ public class PrisonerStatusSystem : MonoBehaviour
 
     Coroutine recoverRoutine;
     Coroutine calmDownRoutine;
+    Coroutine ocOnsetRoutine;
     float lastEffectDuration;
+    bool ocNonResponder;
+
+    // OC is in his eyes but hasn't taken hold yet
+    public bool IsOCPending => ocOnsetRoutine != null;
+
+    void Awake()
+    {
+        ocNonResponder = UnityEngine.Random.value < ocNonResponderChance;
+        if (ocNonResponder)
+            TrainingDebug.Log($"{displayName} will barely react to OC this run", this);
+    }
 
     public void ApplyTaser()
     {
@@ -106,9 +123,52 @@ public class PrisonerStatusSystem : MonoBehaviour
         ApplyTemporaryEffect(PrisonerConditional.Staggered, duration);
     }
 
-    public void ApplyOCSpray()
+    // OC in the eyes: takes a couple of seconds to hit, a new dose while it lasts keeps it going
+    public void ApplyOCSpray(float duration)
     {
-        ApplyTemporaryEffect(PrisonerConditional.InPain, inPainDuration);
+        if (IsDetained)
+            return;
+
+        if (CurrentConditional == PrisonerConditional.InPain)
+        {
+            ApplyTemporaryEffect(PrisonerConditional.InPain, duration);
+            return;
+        }
+
+        if (ocOnsetRoutine == null)
+            ocOnsetRoutine = StartCoroutine(OCOnset(duration));
+    }
+
+    IEnumerator OCOnset(float duration)
+    {
+        yield return new WaitForSeconds(UnityEngine.Random.Range(ocOnsetDelay.x, ocOnsetDelay.y));
+        // A taser cycle running now finishes first, the OC is still there after it
+        while (CurrentConditional == PrisonerConditional.Electrocuted)
+            yield return null;
+        ocOnsetRoutine = null;
+
+        if (IsDetained)
+            yield break;
+
+        if (ocNonResponder)
+        {
+            TrainingLog.Record(TrainingEventType.PrisonerState, $"{displayName} barely reacts to the OC");
+            ApplyStagger(1.5f);
+            yield break;
+        }
+
+        ApplyTemporaryEffect(PrisonerConditional.InPain, duration);
+    }
+
+    // A probe or a strike landed on a body zone, the head is never a legal target
+    public void RegisterHit(BodyZone zone, string cause, ForceKind kind)
+    {
+        if (zone == BodyZone.Head)
+            TrainingLog.Record(TrainingEventType.HeadInjury, $"{displayName} hit in the head: {cause}", kind);
+        else
+            TrainingLog.Record(TrainingEventType.BodyHit, $"{displayName} hit on the {zone.ToString().ToLowerInvariant()}: {cause}", kind);
+
+        OnBodyHit?.Invoke(zone, cause);
     }
 
     // Permanently detains the prisoner (training objective completed)
@@ -121,6 +181,9 @@ public class PrisonerStatusSystem : MonoBehaviour
             StopCoroutine(recoverRoutine);
         if (calmDownRoutine != null)
             StopCoroutine(calmDownRoutine);
+        if (ocOnsetRoutine != null)
+            StopCoroutine(ocOnsetRoutine);
+        ocOnsetRoutine = null;
         SetConditional(PrisonerConditional.Detained);
         TrainingLog.Record(TrainingEventType.Restraint, $"{displayName} secured");
     }

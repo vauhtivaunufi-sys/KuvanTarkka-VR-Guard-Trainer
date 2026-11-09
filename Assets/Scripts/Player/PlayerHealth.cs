@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 // Anything that can stop a blow before it reaches the officer (today: the shield)
 public interface IMeleeBlocker
@@ -17,9 +15,6 @@ public interface IMeleeBlocker
 public class PlayerHealth : MonoBehaviour
 {
     [SerializeField] float maxHealth = 100f;
-
-    [Tooltip("Seconds from being incapacitated until the scene restarts.")]
-    [SerializeField] float restartDelay = 5f;
 
     static readonly List<IMeleeBlocker> blockers = new();
 
@@ -62,14 +57,15 @@ public class PlayerHealth : MonoBehaviour
         {
             if (blockers[i].TryBlock(attackOrigin, target))
             {
-                TrainingDebug.Log($"Shield blocked a blow from {attacker}", this);
+                TrainingLog.Record(TrainingEventType.Info, $"Shield blocked a blow from {attacker}");
                 Blocked?.Invoke();
                 return;
             }
         }
 
         Health = Mathf.Max(0f, Health - damage);
-        TrainingDebug.Log($"Officer hit by {attacker}: -{damage:0}, health {Health:0}/{maxHealth:0}", this);
+        TrainingLog.Record(TrainingEventType.OfficerHit, $"Officer hit by {attacker}: -{damage:0}, health {Health:0}/{maxHealth:0}",
+            ForceKind.None, damage);
 
         Haptics.HitTaken();
         overlay.FlashDamage(damage / maxHealth);
@@ -79,21 +75,14 @@ public class PlayerHealth : MonoBehaviour
             BecomeIncapacitated(attacker);
     }
 
+    // The scenario decides what comes next: the report with Restart and Main menu
     void BecomeIncapacitated(string attacker)
     {
         IsIncapacitated = true;
-        Incapacitated?.Invoke();
+        TrainingLog.Record(TrainingEventType.OfficerDown, $"Officer incapacitated by {attacker}");
 
         overlay.FadeTo(0.85f, 1.5f);
-        overlay.ShowSubtitle($"You were incapacitated by {attacker}.\nScenario failed - restarting...", restartDelay);
-        StartCoroutine(RestartAfterDelay());
-    }
-
-    IEnumerator RestartAfterDelay()
-    {
-        yield return new WaitForSeconds(restartDelay - 1f);
-        overlay.FadeTo(1f, 0.8f);
-        yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        overlay.ShowSubtitle($"You were incapacitated by {attacker}.", 3f);
+        Incapacitated?.Invoke();
     }
 }

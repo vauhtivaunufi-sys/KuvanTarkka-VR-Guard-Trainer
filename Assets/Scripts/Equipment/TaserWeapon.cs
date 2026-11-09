@@ -299,7 +299,7 @@ public class TaserWeapon : GrabbableWeapon
             if (spread >= minEffectiveSpread)
             {
                 TrainingLog.Record(TrainingEventType.ForceUsed,
-                    $"Taser: both probes hit {targetA.DisplayName} {at}, spread {spread * 100f:0} cm - incapacitated");
+                    $"Taser: both probes hit {targetA.DisplayName} {at}, spread {spread * 100f:0} cm - incapacitated", ForceKind.TaserProbes);
                 Energize(targetA, hand);
             }
             else
@@ -307,19 +307,32 @@ public class TaserWeapon : GrabbableWeapon
                 // Current crosses only a few centimetres of muscle: it hurts, nothing locks up
                 d.PainOnly = true;
                 TrainingLog.Record(TrainingEventType.ForceUsed,
-                    $"Taser: probes only {spread * 100f:0} cm apart on {targetA.DisplayName} {at} - pain only, too close");
+                    $"Taser: probes only {spread * 100f:0} cm apart on {targetA.DisplayName} {at} - pain only, too close", ForceKind.TaserProbes);
                 targetA.ApplyStagger(painOnlyDuration);
             }
         }
         else if (targetA != null || targetB != null)
         {
             PrisonerStatusSystem t = targetA != null ? targetA : targetB;
-            TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser: only one probe hit {t.DisplayName} {at} - no circuit, no effect");
+            TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser: only one probe hit {t.DisplayName} {at} - no circuit, no effect", ForceKind.TaserProbes);
         }
         else
         {
-            TrainingLog.Record(TrainingEventType.ForceMissed, $"Taser: both probes missed {at}");
+            TrainingLog.Record(TrainingEventType.ForceMissed, $"Taser: both probes missed {at}", ForceKind.TaserProbes);
         }
+
+        RegisterProbe(targetA, endA);
+        RegisterProbe(targetB, endB);
+    }
+
+    // Which part of the body a probe went into, the head ends the scenario
+    static void RegisterProbe(PrisonerStatusSystem target, Vector3 point)
+    {
+        if (target == null)
+            return;
+        HitZone zone = HitZone.Nearest(target, point);
+        if (zone != null)
+            target.RegisterHit(zone.Zone, "taser probe", ForceKind.TaserProbes);
     }
 
     void Energize(PrisonerStatusSystem target, Hand hand)
@@ -330,7 +343,7 @@ public class TaserWeapon : GrabbableWeapon
         cyclesPerTarget.TryGetValue(target, out int cycles);
         cycles++;
         cyclesPerTarget[target] = cycles;
-        TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser cycle {cycles} on {target.DisplayName}, {cycleDuration:0} s");
+        TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser cycle {cycles} on {target.DisplayName}, {cycleDuration:0} s", ForceKind.TaserCycle, cycleDuration);
     }
 
     // Arc button: another cycle through connected probes, else a drive stun, else a warning arc
@@ -347,7 +360,7 @@ public class TaserWeapon : GrabbableWeapon
 
             if (d.PainOnly)
             {
-                TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser re-energized on {d.Target.DisplayName} - pain only, probes too close");
+                TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser re-energized on {d.Target.DisplayName} - pain only, probes too close", ForceKind.TaserCycle, cycleDuration);
                 d.Target.ApplyStagger(painOnlyDuration);
             }
             else
@@ -360,13 +373,13 @@ public class TaserWeapon : GrabbableWeapon
         PrisonerStatusSystem contact = FindContactTarget();
         if (contact != null)
         {
-            TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser drive stun on {contact.DisplayName} - pain only");
+            TrainingLog.Record(TrainingEventType.ForceUsed, $"Taser drive stun on {contact.DisplayName} - pain only", ForceKind.TaserDriveStun);
             contact.ApplyStagger(painOnlyDuration);
             return;
         }
 
         // Seen and heard crackle, a last warning before firing
-        TrainingLog.Record(TrainingEventType.Info, "Taser warning arc");
+        TrainingLog.Record(TrainingEventType.Warning, "Taser warning arc");
         PrisonerPerception.ReportNoise(usePoint.position, warningArcRange, fromPlayer: true);
         foreach (PrisonerPerception p in PrisonerPerception.All)
         {

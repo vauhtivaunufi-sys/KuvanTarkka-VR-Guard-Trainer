@@ -11,7 +11,32 @@ public enum TrainingEventType
     Restraint,
     ForceUsed,
     ForceMissed,
-    Info
+    Info,
+    // Probe or strike landed on a body zone
+    BodyHit,
+    // Anything that reached his head, the scenario fails
+    HeadInjury,
+    // Verbal force warning or a taser warning arc
+    Warning,
+    InmateAttack,
+    OfficerHit,
+    OfficerDown,
+    // Force landed on an inmate who was doing what he was told
+    ForceOnCompliant,
+    // Equipment used against its training: an OC burst too long, sprayed too close
+    TechniqueError
+}
+
+// Which kind of force an event was, so the report can count them
+public enum ForceKind
+{
+    None,
+    TaserProbes,
+    TaserCycle,
+    TaserDriveStun,
+    OCSpray,
+    // An item hitting him: strike or throw
+    Impact
 }
 
 public readonly struct TrainingEvent
@@ -19,16 +44,21 @@ public readonly struct TrainingEvent
     public readonly float Time;
     public readonly TrainingEventType Type;
     public readonly string Text;
+    public readonly ForceKind Kind;
+    // Seconds of a taser cycle or an OC burst, damage of a blow
+    public readonly float Value;
 
-    public TrainingEvent(float time, TrainingEventType type, string text)
+    public TrainingEvent(float time, TrainingEventType type, string text, ForceKind kind, float value)
     {
         Time = time;
         Type = type;
         Text = text;
+        Kind = kind;
+        Value = value;
     }
 }
 
-// Timeline of one training run, the base for the use-of-force report in step 10
+// Timeline of one training run, read by the use-of-force report
 public static class TrainingLog
 {
     static readonly List<TrainingEvent> events = new();
@@ -37,6 +67,9 @@ public static class TrainingLog
     public static event Action<TrainingEvent> EventRecorded;
 
     public static IReadOnlyList<TrainingEvent> Events => events;
+
+    // Seconds since the run started
+    public static float Elapsed => Time.time - startTime;
 
     // Statics survive between Play sessions when domain reload is off
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -47,7 +80,7 @@ public static class TrainingLog
         EventRecorded = null;
     }
 
-    // Starts a fresh timeline, called by the scenario system from step 5
+    // Starts a fresh timeline when a scenario starts
     public static void Begin()
     {
         events.Clear();
@@ -56,7 +89,12 @@ public static class TrainingLog
 
     public static void Record(TrainingEventType type, string text)
     {
-        var e = new TrainingEvent(Time.time - startTime, type, text);
+        Record(type, text, ForceKind.None, 0f);
+    }
+
+    public static void Record(TrainingEventType type, string text, ForceKind kind, float value = 0f)
+    {
+        var e = new TrainingEvent(Elapsed, type, text, kind, value);
         events.Add(e);
         TrainingDebug.Log($"[Log {FormatTime(e.Time)}] {type}: {text}");
         EventRecorded?.Invoke(e);

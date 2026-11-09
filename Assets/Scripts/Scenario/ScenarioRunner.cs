@@ -15,7 +15,7 @@ public class ScenarioRunner : MonoBehaviour
 
     [SerializeField] ObjectiveUIController objectiveUI;
 
-    [Tooltip("Seconds after the inmate is under control before the result panel shows")]
+    [Tooltip("Seconds after the run ends before the report shows")]
     [SerializeField] float resultDelay = 3f;
 
     [Tooltip("A left menu press shorter than this pauses, a long hold stays the debug toggle, s")]
@@ -25,10 +25,10 @@ public class ScenarioRunner : MonoBehaviour
     PlayerHealth officerHealth;
     RectTransform briefingPanel;
     RectTransform pausePanel;
-    RectTransform resultPanel;
+    Coroutine resultRoutine;
+    ReportPanel reportPanel;
     bool running;
     bool finished;
-    float startTime;
     float menuDownTime = float.NegativeInfinity;
 
     bool OfficerDown => officerHealth != null && officerHealth.IsIncapacitated;
@@ -37,6 +37,14 @@ public class ScenarioRunner : MonoBehaviour
     {
         if (PlayerRig.Instance != null)
             officerHealth = PlayerRig.Instance.GetComponent<PlayerHealth>();
+
+        foreach (PrisonerStatusSystem inmate in inmates)
+        {
+            if (inmate != null)
+                inmate.OnBodyHit += HandleBodyHit;
+        }
+        if (officerHealth != null)
+            officerHealth.Incapacitated += HandleOfficerDown;
 
         scenario = ScenarioSession.Current != null ? ScenarioSession.Current : defaultScenario;
         if (scenario == null)
@@ -52,6 +60,14 @@ public class ScenarioRunner : MonoBehaviour
 
     void OnDestroy()
     {
+        foreach (PrisonerStatusSystem inmate in inmates)
+        {
+            if (inmate != null)
+                inmate.OnBodyHit -= HandleBodyHit;
+        }
+        if (officerHealth != null)
+            officerHealth.Incapacitated -= HandleOfficerDown;
+
         // Never leave the game frozen behind us
         if (Time.timeScale <= 0f)
             Time.timeScale = 1f;
@@ -61,7 +77,7 @@ public class ScenarioRunner : MonoBehaviour
     {
         HandlePauseButton();
 
-        if (!running || finished || scenario == null || OfficerDown)
+        if (!running || finished || scenario == null)
             return;
 
         foreach (PrisonerStatusSystem inmate in inmates)
@@ -136,7 +152,6 @@ public class ScenarioRunner : MonoBehaviour
 
         Time.timeScale = 1f;
         running = true;
-        startTime = Time.time;
         TrainingLog.Begin();
         TrainingLog.Record(TrainingEventType.Info, scenario != null ? $"Scenario started: {scenario.Title}" : "Free play started");
 
@@ -170,28 +185,59 @@ public class ScenarioRunner : MonoBehaviour
     void Finish(PrisonerStatusSystem prisoner)
     {
         finished = true;
-        float elapsed = Time.time - startTime;
-        TrainingLog.Record(TrainingEventType.Restraint, $"{prisoner.DisplayName} under control after {TrainingLog.FormatTime(elapsed)}");
+        string how = prisoner.IsCuffed ? "cuffed" : prisoner.IsDetained ? "secured" : "facing the wall";
+        TrainingLog.Record(TrainingEventType.Restraint, $"{prisoner.DisplayName} under control ({how})");
         if (objectiveUI != null)
             objectiveUI.SetObjectiveText("Objective complete");
-        StartCoroutine(ShowResultAfterDelay(elapsed));
+        EndRun(true, $"Inmate under control - {how}");
     }
 
-    IEnumerator ShowResultAfterDelay(float elapsed)
+    // The head is never a target: any probe or strike there ends the run, even right after a success
+    void HandleBodyHit(BodyZone zone, string cause)
+    {
+        if (zone != BodyZone.Head || !running || reportPanel != null)
+            return;
+
+        finished = true;
+        TrainingLog.Record(TrainingEventType.Info, "Scenario failed - head injury");
+        if (objectiveUI != null)
+            objectiveUI.SetObjectiveText("Scenario failed");
+        EndRun(false, $"Failed - head injury: {cause}");
+    }
+
+    void HandleOfficerDown()
+    {
+        if (!running || reportPanel != null)
+            return;
+
+        finished = true;
+        if (objectiveUI != null)
+            objectiveUI.SetObjectiveText("Scenario failed");
+        EndRun(false, "Failed - officer incapacitated");
+    }
+
+    // A later ending replaces one still waiting to show, a failure always wins
+    void EndRun(bool success, string outcome)
+    {
+        if (resultRoutine != null)
+            StopCoroutine(resultRoutine);
+        float duration = TrainingLog.Elapsed;
+        resultRoutine = StartCoroutine(ShowReportAfterDelay(success, outcome, duration));
+    }
+
+    IEnumerator ShowReportAfterDelay(bool success, string outcome, float duration)
     {
         yield return new WaitForSeconds(resultDelay);
-        if (OfficerDown)
-            yield break;
 
         if (pausePanel != null)
             Resume();
 
-        resultPanel = VrUi.CreatePanel("Result", new Vector2(780f, 470f));
-        VrUi.Text(resultPanel, "SCENARIO COMPLETE", 40f, 32f, 700f, 56f, 38f, true, VrUi.AccentColor);
-        VrUi.Text(resultPanel, $"{scenario.Title}\nInmate under control in {TrainingLog.FormatTime(elapsed)}", 40f, 110f, 700f, 120f, 28f);
-        VrUi.Button(resultPanel, "Restart", 40f, 330f, 330f, 100f, 30f, ScenarioSession.Restart);
-        VrUi.Button(resultPanel, "Main menu", 410f, 330f, 330f, 100f, 30f, ScenarioSession.BackToMenu, primary: true);
-        VrUi.PlaceAhead(resultPanel);
+        // The officer-down fade would hide the report
+        if (officerHealth != null)
+            officerHealth.GetComponent<PlayerFeedbackOverlay>().FadeTo(0f, 0.5f);
+
+        string title = scenario != null ? scenario.Title : "Free play";
+        reportPanel = new ReportPanel(new ScenarioReport(title, success, outcome, duration, TrainingLog.Events));
     }
 
     void HandlePauseButton()
@@ -204,7 +250,7 @@ public class ScenarioRunner : MonoBehaviour
 
         if (pausePanel != null)
             Resume();
-        else if (running && resultPanel == null && !OfficerDown)
+        else if (running && reportPanel == null && !OfficerDown)
             Pause();
     }
 

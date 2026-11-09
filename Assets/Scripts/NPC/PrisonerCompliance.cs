@@ -305,6 +305,7 @@ public class PrisonerCompliance : MonoBehaviour
         // Force on someone who was doing what he was told makes things worse
         if (wasComplying && !status.IsCuffed)
         {
+            TrainingLog.Record(TrainingEventType.ForceOnCompliant, $"Force used on {status.DisplayName} while he was complying");
             ChangeAggression(0.3f);
             lastObeyTime = float.NegativeInfinity;
             status.SetRestraint(PrisonerRestraint.Free);
